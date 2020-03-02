@@ -52,8 +52,6 @@ public class ArrayQueue extends AbstractQueue {
         end = next(end);
     }
 
-    // front - index of first element int queue
-    // end - index of new element after enqueue()
     static class Index extends Node {
         public int i;
 
