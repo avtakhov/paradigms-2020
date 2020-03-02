@@ -1,69 +1,63 @@
 package queue;
 
-public class ArrayQueue {
-    // front - index of first element int queue
-    // end - index of new element after enqueue()
-    private Object[] arr = new Object[8];
-    private int l = 0, r = 0;
+public class ArrayQueue extends AbstractQueue {
+    private final static int START_CAPACITY = 8;
+    private Object[] elements = new Object[START_CAPACITY];
 
-    // return index of next element after a[x]
+    public ArrayQueue() {
+        front = new Index(0);
+        end = new Index(0);
+    }
+
     private int inc(int x) {
-        return (x + 1) % arr.length;
-    }
-
-    // PRE: elements.length > size of queue
-    // POST: size of queue
-    public int size() {
-        return (r - l + arr.length) % arr.length;
-    }
-
-    // PRE: this is first element of queue or Object type equals to prev element type
-    // POST: pushes t at the end of queue
-    public void enqueue(Object t) {
-        checkCapacity(size() + 1);
-        arr[r] = t;
-        r = inc(r);
-    }
-
-    // PRE: size > 0
-    // POST: returns front element by INV of front
-    public Object element() {
-        assert size() > 0;
-        return arr[l];
-    }
-
-    // PRE: size > 0
-    // POST: deletes and returns first element
-    public Object dequeue() {
-        assert size() > 0;
-        Object ans = arr[l];
-        l = inc(l);
-        return ans;
-    }
-
-    // POST: check if size == 0
-    public boolean isEmpty() {
-        return size() == 0;
+        return (x + 1) % elements.length;
     }
 
     // POST: clears queue
     public void clear() {
-        arr = new Object[8];
-        l = 0;
-        r = 0;
+        elements = new Object[START_CAPACITY];
+        front = new Index(0);
+        end = new Index(0);
+        super.size = 0;
     }
 
-    // PRE: size is expected size of queue after push request
-    // POST: rebuild queue
-    private void checkCapacity(int size) {
-        if (size >= arr.length) {
-            Object[] arr0 = new Object[arr.length * 2];
-            for (int i = l, j = 0; i != r; i = inc(i), j++) {
-                arr0[j] = arr[i];
+    private void checkCapacity() {
+        if (size() >= elements.length) {
+            Object[] arr0 = new Object[elements.length * 2];
+            Node v = front;
+            for (int j = 0; j < size(); j++) {
+                arr0[j] = get(v);
+                v = next(v);
             }
-            r = size();
-            l = 0;
-            arr = arr0;
+            end = new Index(size());
+            front = new Index(0);
+            elements = arr0;
         }
     }
+
+    @Override
+    protected Node next(Node t) {
+        return new Index(inc(((Index) t).i));
+    }
+
+    @Override
+    protected Object get(Node t) {
+        return elements[((Index) t).i];
+    }
+
+    @Override
+    protected void append(Object obj) {
+        checkCapacity();
+        elements[((Index) end).i] = obj;
+        end = next(end);
+    }
+
+    static class Index extends Node {
+        public int i;
+
+        public Index(int i) {
+            this.i = i;
+        }
+    }
+
 }

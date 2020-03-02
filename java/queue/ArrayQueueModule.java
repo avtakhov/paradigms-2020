@@ -2,11 +2,8 @@ package queue;
 
 public class ArrayQueueModule {
     private static Object[] elements = new Object[8];
-    // front - index of first element int queue
-    // end - index of new element after enqueue()
     private static int front = 0, end = 0;
 
-    // return index of next element after a[x]
     private static int inc(int x) {
         return (x + 1) % elements.length;
     }
@@ -44,7 +41,7 @@ public class ArrayQueueModule {
         return ans;
     }
 
-    // POST: check if size == 0
+    // POST: check if size equals to 0
     public static boolean isEmpty() {
         return size() == 0;
     }
@@ -54,6 +51,19 @@ public class ArrayQueueModule {
         elements = new Object[8];
         front = 0;
         end = 0;
+    }
+
+    // '[' + all values from front to end, divided by comma + ']'
+    public static String toStr() {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = front; i != end; i = inc(i)) {
+            sb.append(elements[i]);
+            if (inc(i) == end) {
+                return sb.append("]").toString();
+            }
+            sb.append(", ");
+        }
+        return sb.append("]").toString();
     }
 
     // PRE: size is expected size of queue after push request
