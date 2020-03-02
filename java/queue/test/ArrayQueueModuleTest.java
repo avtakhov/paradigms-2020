@@ -1,4 +1,6 @@
-package queue;
+package queue.test;
+
+import queue.ArrayQueueModule;
 
 public class ArrayQueueModuleTest extends AbstractQueueIntegerTest {
 
@@ -31,4 +33,11 @@ public class ArrayQueueModuleTest extends AbstractQueueIntegerTest {
     int size() {
         return ArrayQueueModule.size();
     }
+
+    @Override
+    String toStr() {
+        return ArrayQueueModule.toStr();
+    }
+
+
 }

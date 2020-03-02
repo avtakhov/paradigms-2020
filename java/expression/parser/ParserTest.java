@@ -102,7 +102,7 @@ public class ParserTest extends BaseTest {
                 counter.passed();
             }
             counter.nextTest();
-            final CommonExpression result = parser.parse(expression);
+            final CommonExpression result = (CommonExpression) parser.parse(expression);
             counter.passed();
             return result;
         } catch (final Exception e) {

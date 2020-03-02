@@ -1,4 +1,6 @@
-package queue;
+package queue.test;
+
+import queue.ArrayQueueADT;
 
 public class ArrayQueueADTTest extends AbstractQueueIntegerTest {
     ArrayQueueADT q = new ArrayQueueADT();
@@ -31,5 +33,10 @@ public class ArrayQueueADTTest extends AbstractQueueIntegerTest {
     @Override
     int size() {
         return ArrayQueueADT.size(q);
+    }
+
+    @Override
+    String toStr() {
+        return ArrayQueueADT.toStr(q);
     }
 }

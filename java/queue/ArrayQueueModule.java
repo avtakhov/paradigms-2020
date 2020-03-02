@@ -56,6 +56,19 @@ public class ArrayQueueModule {
         end = 0;
     }
 
+
+    public static String toStr() {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = front; i != end; i = inc(i)) {
+            sb.append(elements[i]);
+            if (inc(i) == end) {
+                return sb.append("]").toString();
+            }
+            sb.append(", ");
+        }
+        return sb.append("]").toString();
+    }
+
     // PRE: size is expected size of queue after push request
     // POST: rebuild queue
     private static void checkCapacity(int size) {

@@ -1,7 +1,10 @@
-package queue;
+package queue.test;
+
+import queue.ArrayQueue;
+import queue.Queue;
 
 public class MyArrayQueueTest extends AbstractQueueIntegerTest {
-    ArrayQueue q = new ArrayQueue();
+    Queue q = new ArrayQueue();
 
     @Override
     void enqueue(Object t) {
@@ -32,4 +35,11 @@ public class MyArrayQueueTest extends AbstractQueueIntegerTest {
     int size() {
         return q.size();
     }
+
+    @Override
+    String toStr() {
+        return q.toStr();
+    }
+
+
 }

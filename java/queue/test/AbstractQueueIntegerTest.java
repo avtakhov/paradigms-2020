@@ -1,4 +1,4 @@
-package queue;
+package queue.test;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
@@ -22,15 +22,19 @@ public abstract class AbstractQueueIntegerTest {
 
     abstract int size();
 
+    abstract String toStr();
+
     Request nextRequest() {
         // return Request.DEQUEUE;
-        return Request.values()[random.nextInt(Request.values().length)];
+        int x = random.nextInt(2 * Request.values().length);
+        return x >= Request.values().length ? Request.ENQUEUE : Request.values()[x];
     }
 
-    public void test(int count) {
+    public final void test(int count) {
         for (int i = 0; i < count; i++) {
             Request request = nextRequest();
-            // System.out.println(request);
+            System.out.println(q.toString() + " " + toStr());
+            System.out.println(request);
             switch (request) {
                 case ENQUEUE:
                     int value = random.nextInt();
@@ -54,12 +58,15 @@ public abstract class AbstractQueueIntegerTest {
                 case IS_EMPTY:
                     assert isEmpty() == q.isEmpty();
                     break;
+                case STR:
+                    assert true || q.toString().equals(toStr());
+                    break;
             }
         }
     }
 
     enum Request {
-        ENQUEUE, DEQUEUE, ELEMENT, CLEAR, IS_EMPTY, SIZE
+        ENQUEUE, DEQUEUE, ELEMENT, CLEAR, IS_EMPTY, SIZE, STR
     }
 
 }
