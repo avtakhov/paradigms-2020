@@ -39,7 +39,6 @@ public class ArrayQueueIndexedDequeTest<T extends ArrayQueueIndexedDequeTest.Ind
 
     protected interface IndexedDeque extends QueueDeque {
         Object get(int index);
-
         void set(int index, Object value);
     }
 
@@ -49,16 +48,6 @@ public class ArrayQueueIndexedDequeTest<T extends ArrayQueueIndexedDequeTest.Ind
 
         public ReferenceIndexedDeque(final Stream<Object> elements) {
             super(elements);
-        }
-
-        private static Field getField(final String name) {
-            try {
-                final Field field = ArrayDeque.class.getDeclaredField(name);
-                field.setAccessible(true);
-                return field;
-            } catch (final NoSuchFieldException e) {
-                throw new AssertionError("Reflection error: " + e.getMessage(), e);
-            }
         }
 
         @Override
@@ -73,6 +62,16 @@ public class ArrayQueueIndexedDequeTest<T extends ArrayQueueIndexedDequeTest.Ind
             final Object[] elements = get(ELEMENTS);
             final int head = get(HEAD);
             elements[(head + index) % elements.length] = value;
+        }
+
+        private static Field getField(final String name) {
+            try {
+                final Field field = ArrayDeque.class.getDeclaredField(name);
+                field.setAccessible(true);
+                return field;
+            } catch (final NoSuchFieldException e) {
+                throw new AssertionError("Reflection error: " + e.getMessage(), e);
+            }
         }
 
         @SuppressWarnings("unchecked")

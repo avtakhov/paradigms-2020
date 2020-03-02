@@ -15,15 +15,15 @@ public class QueueTest<T extends ArrayQueueTest.Queue> extends ArrayQueueTest<T>
         new QueueTest<>(Queue.class, ReferenceQueue::new).test();
     }
 
-    private static boolean implementsQueue(final Class<?> type) {
-        return type != Object.class
-                && (Stream.of(type.getInterfaces()).map(Class::getName).anyMatch("queue.Queue"::equals)
-                || implementsQueue(type.getSuperclass()));
-    }
-
     public void test() {
         test("LinkedQueue", 2, Mode.CLASS);
         test("ArrayQueue", 2, Mode.CLASS);
+    }
+
+    private static boolean implementsQueue(final Class<?> type) {
+        return type != Object.class
+                && (Stream.of(type.getInterfaces()).map(Class::getName).anyMatch("queue.Queue"::equals)
+                    || implementsQueue(type.getSuperclass()));
     }
 
     @Override

@@ -1,8 +1,8 @@
 package expression.exceptions;
 
-import expression.TripleExpression;
-import expression.Variable;
+import expression.*;
 import expression.parser.Either;
+import expression.parser.ExpressionParser;
 import expression.parser.ParserTest;
 
 import java.util.ArrayList;
@@ -111,7 +111,7 @@ public class ExceptionsTest extends ParserTest {
     }
 
     protected TripleExpression parse(final String expression, final boolean reparse) {
-        final Parser parser = new ExpressionParser();
+        final Parser parser = (Parser) new ExpressionParser();
         if (expression.length() > 10) {
             loop: for (final char ch : CHARS) {
                 for (int i = 0; i < 10; i++) {

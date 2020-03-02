@@ -18,19 +18,11 @@ import java.util.stream.Stream;
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
 public class ReflectionTest extends Asserts {
-    public static final Collector<CharSequence, ?, String> JOINER = Collectors.joining(", ", "(", ")");
     private static final boolean DEBUG = false;
+    public static final Collector<CharSequence, ?, String> JOINER = Collectors.joining(", ", "(", ")");
 
     public ReflectionTest() {
         Asserts.checkAssert(getClass());
-    }
-
-    protected static String args(final Object[] args) {
-        return Stream.of(args).map(Objects::toString).collect(JOINER);
-    }
-
-    protected static <T> T proxy(final Class<T> type, final InvocationHandler handler) {
-        return type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, handler));
     }
 
     protected void checkResult(final String call, final Object expected, final Object actual) {
@@ -54,6 +46,19 @@ public class ReflectionTest extends Asserts {
             checkResult(call, expected, actual);
             return actual;
         });
+    }
+
+    protected static String args(final Object[] args) {
+        return Stream.of(args).map(Objects::toString).collect(JOINER);
+    }
+
+    protected static <T> T proxy(final Class<T> type, final InvocationHandler handler) {
+        return type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, handler));
+    }
+
+
+    private interface IMethod {
+        Object invoke(final Object instance, final Object[] args) throws InvocationTargetException, IllegalAccessException;
     }
 
 
@@ -88,12 +93,6 @@ public class ReflectionTest extends Asserts {
             }
         };
 
-        private final String suffix;
-
-        Mode(final String suffix) {
-            this.suffix = suffix;
-        }
-
         private static IMethod findMethod(final boolean isStatic, final Class<?> type, final Method method) {
             return findMethod(isStatic, type, method.getName(), method.getParameterTypes())::invoke;
         }
@@ -112,6 +111,12 @@ public class ReflectionTest extends Asserts {
             return method;
         }
 
+        private final String suffix;
+
+        Mode(final String suffix) {
+            this.suffix = suffix;
+        }
+
         abstract IMethod lookupMethod(final Class<?> type, final Method method);
 
         private Class<?> loadClass(final String baseName) {
@@ -127,16 +132,11 @@ public class ReflectionTest extends Asserts {
         }
     }
 
-
-    private interface IMethod {
-        Object invoke(final Object instance, final Object[] args) throws InvocationTargetException, IllegalAccessException;
-    }
-
     protected static class ProxyFactory<T> {
-        protected final Class<?> implementation;
         private final Class<T> type;
         private final Map<Method, IMethod> methods;
         private final Constructor<?> constructor;
+        protected final Class<?> implementation;
 
         public ProxyFactory(final Class<T> type, final Mode mode, final String baseName) {
             implementation = mode.loadClass(baseName);

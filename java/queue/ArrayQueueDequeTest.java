@@ -44,9 +44,7 @@ public class ArrayQueueDequeTest<T extends ArrayQueueDequeTest.QueueDeque> exten
 
     protected interface QueueDeque extends Queue {
         void push(final Object element);
-
         Object peek();
-
         Object remove();
     }
 

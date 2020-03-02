@@ -13,6 +13,10 @@ import java.util.stream.Stream;
  */
 public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTest {
     private static final int OPERATIONS = 100_000;
+
+    private final Class<T> type;
+    private final TestCounter counter = new TestCounter();
+
     private static final Object[] ELEMENTS = new Object[]{
             "Hello",
             "world",
@@ -22,8 +26,6 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
             List.of("b"),
             Map.of()
     };
-    private final TestCounter counter = new TestCounter();
-    private final Class<T> type;
 
     protected final Random random = new Random(2474258720358724587L);
     private final Supplier<T> reference;
@@ -49,12 +51,6 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         counter.printStatus(getClass());
     }
 
-    private static List<Object> toList(final Queue queue) {
-        final List<Object> list = Stream.generate(queue::dequeue).limit(queue.size()).collect(Collectors.toUnmodifiableList());
-        list.forEach(queue::enqueue);
-        return list;
-    }
-
     private void test(final String className, final Mode mode, final int step) {
         final Supplier<T> factory = factory(className, mode);
         testEmpty(factory.get());
@@ -69,6 +65,10 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         final ProxyFactory<T> factory = new ProxyFactory<>(type, mode, "queue." + name);
         checkImplementation(factory.implementation);
         return () -> checking(type, reference.get(), factory.create());
+    }
+
+    protected void checkImplementation(final Class<?> implementation) {
+        // Do nothing by default
     }
 
     protected void testEmpty(final T queue) {
@@ -89,8 +89,9 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         counter.passed();
     }
 
-    protected void checkImplementation(final Class<?> implementation) {
-        // Do nothing by default
+    private void nextTest(final String name) {
+        System.err.println("\t=== " + name);
+        counter.nextTest();
     }
 
     protected void testClear(final T queue) {
@@ -107,11 +108,6 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         queue.enqueue(value1);
         assertEquals("deque()", value1, queue.dequeue());
         counter.passed();
-    }
-
-    private void nextTest(final String name) {
-        System.err.println("\t=== " + name);
-        counter.nextTest();
     }
 
     protected void testRandom(final T initial, final double addFreq) {
@@ -174,13 +170,13 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         queue.enqueue(element);
     }
 
-    protected Object randomElement() {
-        return ELEMENTS[random.nextInt(ELEMENTS.length)];
-    }
-
     protected List<T> linearTest(final T queue) {
         // Do nothing by default
         return List.of();
+    }
+
+    protected Object randomElement() {
+        return ELEMENTS[random.nextInt(ELEMENTS.length)];
     }
 
     protected void assertSize(final int size, final T queue) {
@@ -200,20 +196,21 @@ public class ArrayQueueTest<T extends ArrayQueueTest.Queue> extends ReflectionTe
         }
     }
 
+    private static List<Object> toList(final Queue queue) {
+        final List<Object> list = Stream.generate(queue::dequeue).limit(queue.size()).collect(Collectors.toUnmodifiableList());
+        list.forEach(queue::enqueue);
+        return list;
+    }
+
     /**
      * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
      */
     protected interface Queue {
         void enqueue(Object element);
-
         Object element();
-
         Object dequeue();
-
         int size();
-
         boolean isEmpty();
-
         void clear();
     }
 
