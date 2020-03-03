@@ -26,4 +26,7 @@ public interface Queue {
     default String toStr() {
         return null;
     }
+
+    // returns an array containing all of the elements in this queue
+    Object[] toArray();
 }
