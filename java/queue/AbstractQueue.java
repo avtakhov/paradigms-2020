@@ -1,11 +1,10 @@
 package queue;
 
+import java.util.Arrays;
+
 public abstract class AbstractQueue implements Queue {
     int size = 0;
     Node front, end;
-
-    protected AbstractQueue() {
-    }
 
     protected abstract Node next(Node t);
 
@@ -44,6 +43,8 @@ public abstract class AbstractQueue implements Queue {
 
     @Override
     public String toStr() {
+        return Arrays.toString(toArray());
+        /*
         StringBuilder sb = new StringBuilder("[");
         Node t = front;
         for (int i = 0; i < size(); i++) {
@@ -54,6 +55,18 @@ public abstract class AbstractQueue implements Queue {
             }
         }
         return sb.append(']').toString();
+         */
+    }
+
+    @Override
+    public Object[] toArray() {
+        Object[] ans = new Object[size()];
+        Node t = front;
+        for (int i = 0; i < size(); i++) {
+            ans[i] = get(t);
+            t = next(t);
+        }
+        return ans;
     }
 
     protected abstract static class Node {

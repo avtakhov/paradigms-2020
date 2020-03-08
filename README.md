@@ -3,12 +3,68 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/paradigms/homeworks.html)
 
 
+## Домашнее задание 5. Вычисление в различных типах
+
+Модификации
+ * *Базовая*
+    * Класс `GenericTabulator` должен реализовывать интерфейс
+      [Tabulator](java/expression/generic/Tabulator.java) и
+      сроить трехмерную таблицу значений заданного выражения.
+        * `mode` – режим вычислений:
+           * `i` – вычисления в `int` с проверкой на переполнение;
+           * `d` – вычисления в `double` без проверки на переполнение;
+           * `bi` – вычисления в `BigInteger`.
+        * `expression` – выражение, для которого надо построить таблицу;
+        * `x1`, `x2` – минимальное и максимальное значения переменной `x` (включительно)
+        * `y1`, `y2`, `z1`, `z2` – аналогично для `y` и `z`.
+        * Результат: элемент `result[i][j][k]` должен содержать
+          значение выражения для `x = x1 + i`, `y = y1 + j`, `z = z1 + k`.
+          Если значение не определено (например, по причине переполнения),
+          то соответствующий элемент должен быть равен `null`.
+    * [Исходный код тестов](java/expression/generic/GenericTest.java)
+
+
 ## Домашнее задание 4. Очередь на связном списке
 
 Модификации
  * *Базовая*
     * [Исходный код тестов](java/queue/QueueTest.java)
     * [Откомпилированные тесты](artifacts/queue/QueueTest.jar)
+ * *ToArray*
+    * Добавить в интерфейс очереди и реализовать метод
+      `toArray`, возвращающий массив,
+      содержащий элементы, лежащие в очереди в порядке
+      от головы к хвосту
+    * Исходная очередь должна оставаться неизменной
+    * Дублирования кода быть не должно
+    * [Исходный код тестов](java/queue/QueueToArrayTest.java)
+    * [Откомпилированные тесты](artifacts/queue/QueueToArrayTest.jar)
+ * *Functions*
+    * Добавить в интерфейс очереди и реализовать методы
+        * `filter(predicate)` – создать очередь, содержащую элементы, удовлетворяющие
+            [предикату](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Predicate.html)
+        * `map(function)` – создать очередь, содержащую результаты применения
+            [функции](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Function.html)
+    * Исходная очередь должна остаться неизменной
+    * Тип возвращаемой очереди должен соответствовать типу исходной очереди
+    * Взаимный порядок элементов должен сохраняться
+    * Дублирования кода быть не должно
+    * [Исходный код тестов](java/queue/QueueFunctionsTest.java)
+    * [Откомпилированные тесты](artifacts/queue/QueueFunctionsTest.jar)
+ * *IfWhile*
+    * Добавить в интерфейс очереди и реализовать методы
+        * `removeIf(predicate)` – удалить элементы, удовлетворяющие
+            [предикату](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Predicate.html)
+        * `retainIf(predicate)` – удалить элементы, не удовлетворяющие
+            [предикату](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Predicate.html)
+        * `takeWhile(predicate)` – сохранить подряд идущие элементы, удовлетворяющие
+            [предикату](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Predicate.html)
+        * `dropWhile(predicate)` – удалить подряд идущие элементы, не удовлетворяющие
+            [предикату](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Predicate.html)
+    * Взаимный порядок элементов должен сохраняться
+    * Дублирования кода быть не должно
+    * [Исходный код тестов](java/queue/QueueIfWhileTest.java)
+    * [Откомпилированные тесты](artifacts/queue/QueueIfWhileTest.jar)
 
 
 ## Домашнее задание 3. Очередь на массиве
@@ -19,7 +75,7 @@
     * [Исходный код тестов](java/queue/ArrayQueueTest.java)
     * [Откомпилированные тесты](artifacts/queue/ArrayQueueTest.jar)
  * *ToStr* (простая)
-    * Реализовать метод `toStr`, возвращающий сроковое представление
+    * Реализовать метод `toStr`, возвращающий строковое представление
       очереди в виде '`[`' _голова_ '`, `' ... '`, `' _хвост_ '`]`'
     * [Исходный код тестов](java/queue/ArrayQueueToStrTest.java)
     * [Откомпилированные тесты](artifacts/queue/ArrayQueueToStrTest.jar)

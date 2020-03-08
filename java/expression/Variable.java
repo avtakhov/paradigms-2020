@@ -1,10 +1,11 @@
 package expression;
 
+import expression.generic.number.MyNumber;
 import expression.parser.exceptions.ExpressionException;
 
-public class Variable implements CommonExpression {
+public class Variable<T> implements CommonExpression<T> {
 
-    String s;
+    private String s;
 
     public Variable(String s) {
         if (!s.equals("x") && !s.equals("y") && !s.equals("z")) {
@@ -29,7 +30,7 @@ public class Variable implements CommonExpression {
     }
 
     @Override
-    public int evaluate(int x, int y, int z) {
+    public MyNumber<T> evaluate(MyNumber<T> x, MyNumber<T> y, MyNumber<T> z) {
         switch (s) {
             case "x":
                 return x;
@@ -42,7 +43,7 @@ public class Variable implements CommonExpression {
 
 
     @Override
-    public int evaluate(int x) {
+    public MyNumber<T> evaluate(MyNumber<T> x) {
         return x;
     }
 
@@ -55,7 +56,7 @@ public class Variable implements CommonExpression {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        Variable variable = (Variable) object;
+        Variable<?> variable = (Variable<?>) object;
         return this.s.equals(variable.s);
     }
 

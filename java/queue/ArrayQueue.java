@@ -23,6 +23,7 @@ public class ArrayQueue extends AbstractQueue {
 
     private void checkCapacity() {
         if (size() >= elements.length) {
+            // elements = Arrays.copyOf(toArray(),  elements.length * 2);
             Object[] arr0 = new Object[elements.length * 2];
             Node v = front;
             for (int j = 0; j < size(); j++) {
@@ -32,6 +33,7 @@ public class ArrayQueue extends AbstractQueue {
             end = new Index(size());
             front = new Index(0);
             elements = arr0;
+            // */
         }
     }
 

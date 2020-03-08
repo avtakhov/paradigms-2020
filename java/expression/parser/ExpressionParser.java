@@ -1,12 +1,13 @@
 package expression.parser;
 
 import expression.*;
+import expression.generic.number.constant.ConstParser;
 import expression.parser.exceptions.*;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class ExpressionParser extends BaseParser implements Parser {
+public class ExpressionParser<T> extends BaseParser implements Parser<T> {
     private static final Map<String, Integer> PRIORITIES = Map.of(
             "+", 1,
             "-", 1,
@@ -20,11 +21,16 @@ public class ExpressionParser extends BaseParser implements Parser {
     final int LAST_PRIORITY = 3;
     final int START_PRIORITY = 0;
     private String last = "";
+    private final ConstParser<T> constParser;
+
+    public ExpressionParser(ConstParser<T> constParser) {
+        this.constParser = constParser;
+    }
 
     @Override
-    public expression.TripleExpression parse(String expression) throws ParserException {
+    public TripleExpression<T> parse(String expression) throws ParserException {
         setSource(new StringSource(expression));
-        TripleExpression res = parseOperation(START_PRIORITY);
+        CommonExpression<T> res = parseOperation(START_PRIORITY);
         if (hasNext()) {
             throw new UnexpectedSymbolException(getPos() + ": " + ch);
         }
@@ -69,12 +75,12 @@ public class ExpressionParser extends BaseParser implements Parser {
         }
     }
 
-    private CommonExpression parseOperation(int priority) throws ParserException {
+    private CommonExpression<T> parseOperation(int priority) throws ParserException {
         skipWhitespaces();
         if (priority == LAST_PRIORITY) {
             return parseUnary();
         }
-        CommonExpression result = parseOperation(priority + 1);
+        CommonExpression<T> result = parseOperation(priority + 1);
         skipWhitespaces();
         while (hasNext() || !last.isEmpty()) {
             String operator;
@@ -94,17 +100,19 @@ public class ExpressionParser extends BaseParser implements Parser {
             }
             switch (operator) {
                 case "+":
-                    result = new CheckedAdd(result, parseOperation(priority + 1));
+                    result = new Add<>(result, parseOperation(priority + 1));
                     break;
                 case "-":
-                    result = new CheckedSubtract(result, parseOperation(priority + 1));
+                    result = new Subtract<>(result, parseOperation(priority + 1));
                     break;
                 case "*":
-                    result = new CheckedMultiply(result, parseOperation(priority + 1));
+                    result = new Multiply<>(result, parseOperation(priority + 1));
                     break;
                 case "/":
-                    result = new CheckedDivide(result, parseOperation(priority + 1));
+                    result = new Divide<>(result, parseOperation(priority + 1));
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + operator);
             }
         }
 
@@ -112,7 +120,7 @@ public class ExpressionParser extends BaseParser implements Parser {
         return result;
     }
 
-    private CommonExpression parseUnary() throws ParserException {
+    private CommonExpression<T> parseUnary() throws ParserException {
         skipWhitespaces();
         String operator = testOperation();
         if (Objects.equals(operator, "-")) {
@@ -120,25 +128,21 @@ public class ExpressionParser extends BaseParser implements Parser {
             if (Character.isDigit(ch)) {
                 return parseNumber(true);
             } else {
-                return new Negative(parseOperation(LAST_PRIORITY));
+                return new Negative<>(parseOperation(LAST_PRIORITY));
             }
-        } else if (Objects.equals(operator, "log2")) {
-            return new CheckedLog2(parseOperation(LAST_PRIORITY));
-        } else if (Objects.equals(operator, "pow2")) {
-            return new CheckedPow2(parseOperation(LAST_PRIORITY));
         } else if (operator != null) {
             throw new NoArgumentException(getPos() + ": " + "expected number or expression");
         }
         skipWhitespaces();
         if (test('(')) {
-            CommonExpression result = parseOperation(START_PRIORITY);
+            CommonExpression<T> result = parseOperation(START_PRIORITY);
             expect(')');
             return result;
         }
         return parseSimpleElement();
     }
 
-    private CommonExpression parseSimpleElement() throws ParserException {
+    private CommonExpression<T> parseSimpleElement() throws ParserException {
         skipWhitespaces();
         StringBuilder sb = new StringBuilder();
         int count = 0;
@@ -149,7 +153,7 @@ public class ExpressionParser extends BaseParser implements Parser {
         }
         if (count != 0) {
             try {
-                return new Variable(sb.toString());
+                return new Variable<>(sb.toString());
             } catch (ExpressionException e) {
                 throw new ParserArithmeticException(getPos() + ": " + e.getMessage());
             }
@@ -158,7 +162,7 @@ public class ExpressionParser extends BaseParser implements Parser {
         }
     }
 
-    private CommonExpression parseNumber(boolean negative) throws ParserException {
+    private CommonExpression<T> parseNumber(boolean negative) throws ParserException {
         StringBuilder sb = new StringBuilder();
         if (negative) {
             sb.append('-');
@@ -176,7 +180,7 @@ public class ExpressionParser extends BaseParser implements Parser {
             }
         }
         try {
-            return new Const(Integer.parseInt(sb.toString()));
+            return constParser.parse(sb.toString());
         } catch (NumberFormatException e) {
             throw new ParserArithmeticException(getPos() + ": overflow constant " + e.getMessage());
         }

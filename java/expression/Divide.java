@@ -1,8 +1,10 @@
 package expression;
 
-public class Divide extends AbstractBinaryOperator {
+import expression.generic.number.MyNumber;
 
-    public Divide(CommonExpression first, CommonExpression second) {
+public class Divide<T> extends AbstractBinaryOperator<T> {
+
+    public Divide(CommonExpression<T> first, CommonExpression<T> second) {
         super(first, second);
     }
 
@@ -16,8 +18,8 @@ public class Divide extends AbstractBinaryOperator {
         return 6;
     }
 
-    protected int apply(int a, int b) {
-        return a / b;
+    protected MyNumber<T> apply(MyNumber<T> a, MyNumber<T> b) {
+        return a.divide(b);
     }
 
     @Override

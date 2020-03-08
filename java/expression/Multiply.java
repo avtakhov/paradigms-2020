@@ -1,9 +1,16 @@
 package expression;
 
-public class Multiply extends AbstractBinaryOperator {
+import expression.generic.number.MyNumber;
 
-    public Multiply(CommonExpression first, CommonExpression second) {
+public class Multiply<T> extends AbstractBinaryOperator<T> {
+
+    public Multiply(CommonExpression<T> first, CommonExpression<T> second) {
         super(first, second);
+    }
+
+    @Override
+    protected MyNumber<T> apply(MyNumber<T> x, MyNumber<T> y) {
+        return x.multiply(y);
     }
 
     @Override
@@ -14,9 +21,5 @@ public class Multiply extends AbstractBinaryOperator {
     @Override
     public int getPriorityLevel() {
         return 6;
-    }
-
-    protected int apply(int a, int b) {
-        return a * b;
     }
 }

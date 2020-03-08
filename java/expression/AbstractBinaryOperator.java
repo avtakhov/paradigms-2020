@@ -1,25 +1,27 @@
 package expression;
 
+import expression.generic.number.MyNumber;
+
 import java.util.Objects;
 
-public abstract class AbstractBinaryOperator implements CommonExpression {
-    private CommonExpression first;
-    private CommonExpression second;
+public abstract class AbstractBinaryOperator<T> implements CommonExpression<T> {
+    private CommonExpression<T> first;
+    private CommonExpression<T> second;
 
-    protected AbstractBinaryOperator(CommonExpression first, CommonExpression second) {
+    protected AbstractBinaryOperator(CommonExpression<T> first, CommonExpression<T> second) {
         this.first = first;
         this.second = second;
     }
 
-    private String putBrackets(CommonExpression expression, boolean isBracket) {
+    private String putBrackets(CommonExpression<T> expression, boolean isBracket) {
         return (isBracket ? "(" : "") + expression.toMiniString() + (isBracket ? ")" : "");
     }
 
-    private boolean checkBrackets(CommonExpression expression) {
+    private boolean checkBrackets(CommonExpression<T> expression) {
         return expression.getPriorityLevel() < this.getPriorityLevel();
     }
 
-    private boolean checkSpecialBrackets(CommonExpression expression) {
+    private boolean checkSpecialBrackets(CommonExpression<T> expression) {
         return expression.isSpecialPhrase() && this.getPriorityLevel() == expression.getPriorityLevel()
                 || this.isSpecialPhrase() && expression.getPriorityLevel() <= this.getPriorityLevel();
 
@@ -32,15 +34,15 @@ public abstract class AbstractBinaryOperator implements CommonExpression {
                 putBrackets(second, checkBrackets(second) || checkSpecialBrackets(second));
     }
 
-    abstract int apply(int x, int y);
+    abstract MyNumber<T> apply(MyNumber<T> x, MyNumber<T> y);
 
     @Override
-    public int evaluate(int x, int y, int z) {
+    public MyNumber<T> evaluate(MyNumber<T> x, MyNumber<T> y, MyNumber<T> z) {
         return apply(first.evaluate(x, y, z), second.evaluate(x, y, z));
     }
 
     @Override
-    public int evaluate(int x) {
+    public MyNumber<T> evaluate(MyNumber<T> x) {
         return apply(first.evaluate(x), second.evaluate(x));
     }
 
@@ -51,10 +53,10 @@ public abstract class AbstractBinaryOperator implements CommonExpression {
 
     @Override
     public boolean equals(Object object) {
-        if (object == null || getClass() != object.getClass()) {
+        if (object == null || this.getClass() != object.getClass()) {
             return false;
         }
-        AbstractBinaryOperator binaryOperator = (AbstractBinaryOperator) object;
+        AbstractBinaryOperator<?> binaryOperator = (AbstractBinaryOperator<?>) object;
 
         return Objects.equals(this.first, binaryOperator.first)
                 && Objects.equals(this.second, binaryOperator.second);
