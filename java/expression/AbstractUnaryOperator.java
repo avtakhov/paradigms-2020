@@ -1,24 +1,26 @@
 package expression;
 
+import expression.generic.number.MyNumber;
+
 import java.util.Objects;
 
-public abstract class AbstractUnaryOperator implements CommonExpression {
+public abstract class AbstractUnaryOperator<T> implements CommonExpression<T> {
 
-    CommonExpression commonExpression;
+    CommonExpression<T> commonExpression;
 
-    protected AbstractUnaryOperator(CommonExpression commonExpression) {
+    protected AbstractUnaryOperator(CommonExpression<T> commonExpression) {
         this.commonExpression = commonExpression;
     }
 
-    abstract int apply(int x);
+    abstract MyNumber<T> apply(MyNumber<T> x);
 
     @Override
-    public int evaluate(int x, int y, int z) {
+    public MyNumber<T> evaluate(MyNumber<T> x, MyNumber<T> y, MyNumber<T> z) {
         return apply(commonExpression.evaluate(x, y, z));
     }
 
     @Override
-    public int evaluate(int x) {
+    public MyNumber<T> evaluate(MyNumber<T> x) {
         return apply(commonExpression.evaluate(x));
     }
 
@@ -32,7 +34,7 @@ public abstract class AbstractUnaryOperator implements CommonExpression {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        AbstractUnaryOperator unaryOperator = (AbstractUnaryOperator) object;
+        AbstractUnaryOperator<?> unaryOperator = (AbstractUnaryOperator<?>) object;
 
         return Objects.equals(this.commonExpression, unaryOperator.commonExpression);
     }

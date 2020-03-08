@@ -1,8 +1,15 @@
 package expression;
 
-public class Subtract extends AbstractBinaryOperator {
-    public Subtract(CommonExpression first, CommonExpression second) {
+import expression.generic.number.MyNumber;
+
+public class Subtract<T> extends AbstractBinaryOperator<T> {
+    public Subtract(CommonExpression<T> first, CommonExpression<T> second) {
         super(first, second);
+    }
+
+    @Override
+    MyNumber<T> apply(MyNumber<T> x, MyNumber<T> y) {
+        return x.subtract(y);
     }
 
     @Override
@@ -13,10 +20,6 @@ public class Subtract extends AbstractBinaryOperator {
     @Override
     public int getPriorityLevel() {
         return 3;
-    }
-
-    protected int apply(int a, int b) {
-        return a - b;
     }
 
     @Override

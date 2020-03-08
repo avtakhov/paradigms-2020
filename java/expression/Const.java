@@ -1,14 +1,18 @@
 package expression;
 
-public class Const implements CommonExpression {
-    int c;
+import expression.generic.number.MyNumber;
 
-    public Const(int c) {
+import java.util.Objects;
+
+public class Const<T> implements CommonExpression<T> {
+    MyNumber<T> c;
+
+    public Const(MyNumber<T> c) {
         this.c = c;
     }
 
     public String toString() {
-        return String.valueOf(c);
+        return String.valueOf(c.getValue());
     }
 
     public String toMiniString() {
@@ -26,26 +30,26 @@ public class Const implements CommonExpression {
     }
 
     @Override
-    public int evaluate(int x, int y, int z) {
-        return c;
-    }
-
-    @Override
-    public int evaluate(int x) {
-        return c;
-    }
-
-    @Override
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        Const constant = (Const) object;
-        return this.c == constant.c;
+        Const<?> constant = (Const<?>) object;
+        return Objects.equals(this.c, constant.c);
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(c);
+        return Objects.hashCode(c);
+    }
+
+    @Override
+    public MyNumber<T> evaluate(MyNumber<T> x) {
+        return c;
+    }
+
+    @Override
+    public MyNumber<T> evaluate(MyNumber<T> x, MyNumber<T> y, MyNumber<T> z) {
+        return c;
     }
 }

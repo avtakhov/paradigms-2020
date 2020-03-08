@@ -1,14 +1,16 @@
 package expression;
 
-public class Negative extends AbstractUnaryOperator {
+import expression.generic.number.MyNumber;
 
-    public Negative(CommonExpression commonExpression) {
+public class Negative<T> extends AbstractUnaryOperator<T> {
+
+    public Negative(CommonExpression<T> commonExpression) {
         super(commonExpression);
     }
 
     @Override
-    int apply(int x) {
-        return -x;
+    MyNumber<T> apply(MyNumber<T> x) {
+        return x.negate();
     }
 
     @Override
