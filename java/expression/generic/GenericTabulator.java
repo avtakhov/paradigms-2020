@@ -9,6 +9,7 @@ import expression.generic.number.constant.BigIntegerConstantParser;
 import expression.generic.number.constant.DoubleConstantParser;
 import expression.generic.number.constant.IntegerConstantParser;
 import expression.parser.ExpressionParser;
+import expression.parser.exceptions.ExpressionException;
 import expression.parser.exceptions.ParserException;
 
 import java.math.BigInteger;
@@ -49,7 +50,7 @@ public class GenericTabulator<T extends Number> implements Tabulator {
                 for (int k = 0; k <= dz; k++) {
                     try {
                         ans[i][j][k] = expression.evaluate(f.apply(x1 + i), f.apply(y1 + j), f.apply(z1 + k)).getValue();
-                    } catch (RuntimeException e) {
+                    } catch (ExpressionException e) {
                         ans[i][j][k] = null;
                     }
                 }
