@@ -1,5 +1,7 @@
 package expression.generic.number;
 
+import expression.parser.exceptions.DivideByZeroException;
+
 import java.math.BigInteger;
 
 public class MyBigInteger extends MyNumber<BigInteger> {
@@ -29,6 +31,9 @@ public class MyBigInteger extends MyNumber<BigInteger> {
 
     @Override
     public MyNumber<BigInteger> divide(MyNumber<BigInteger> other) {
+        if (other.value.compareTo(BigInteger.ZERO) == 0) {
+            throw new DivideByZeroException("Cannot calculate " + value + " / " + other.value);
+        }
         return new MyBigInteger(value.divide(other.value));
     }
 
