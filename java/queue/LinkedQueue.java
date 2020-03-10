@@ -36,10 +36,10 @@ public class LinkedQueue extends AbstractQueue {
     }
 
     private class ListNode extends Node {
-        Object value;
-        Node next;
+        private Object value;
+        private Node next;
 
-        ListNode(Object value, Node next) {
+        ListNode(Object value, ListNode next) {
             this.value = value;
             this.next = next;
         }

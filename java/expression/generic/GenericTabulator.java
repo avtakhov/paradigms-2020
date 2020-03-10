@@ -24,17 +24,17 @@ public class GenericTabulator<T extends Number> implements Tabulator {
                 CommonExpression<Integer> commonExpressionInteger = (CommonExpression<Integer>)
                         new ExpressionParser<>(new IntegerConstantParser())
                                 .parse(expression);
-                return tabulate(MyInteger::new, commonExpressionInteger, x1, x2, y1, y2, z1, z2);
+                return tabulate(this::intApply, commonExpressionInteger, x1, x2, y1, y2, z1, z2);
             case "d":
                 CommonExpression<Double> commonExpressionDouble = (CommonExpression<Double>)
                         new ExpressionParser<>(new DoubleConstantParser())
                                 .parse(expression);
-                return tabulate(MyDouble::new, commonExpressionDouble, x1, x2, y1, y2, z1, z2);
+                return tabulate(this::doubleApply, commonExpressionDouble, x1, x2, y1, y2, z1, z2);
             case "bi":
                 CommonExpression<BigInteger> commonExpressionBigInteger = (CommonExpression<BigInteger>)
                         new ExpressionParser<>(new BigIntegerConstantParser())
                                 .parse(expression);
-                return tabulate(MyBigInteger::new, commonExpressionBigInteger, x1, x2, y1, y2, z1, z2);
+                return tabulate(this::bigIntegerApply, commonExpressionBigInteger, x1, x2, y1, y2, z1, z2);
             default:
                 throw new IllegalArgumentException("Unknown mode");
         }
@@ -57,5 +57,17 @@ public class GenericTabulator<T extends Number> implements Tabulator {
             }
         }
         return ans;
+    }
+
+    private MyNumber<Integer> intApply(Integer x) {
+        return new MyInteger(x);
+    }
+
+    private MyNumber<Double> doubleApply(Integer x) {
+        return new MyDouble((double) x);
+    }
+
+    private MyNumber<BigInteger> bigIntegerApply(Integer x) {
+        return new MyBigInteger(new BigInteger(x.toString()));
     }
 }

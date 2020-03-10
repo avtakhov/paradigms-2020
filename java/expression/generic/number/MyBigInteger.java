@@ -6,12 +6,12 @@ import java.math.BigInteger;
 
 public class MyBigInteger extends MyNumber<BigInteger> {
 
-    public MyBigInteger(BigInteger add) {
-        super(add);
+    public MyBigInteger(BigInteger x) {
+        super(x);
     }
 
-    public MyBigInteger(Integer add) {
-        super(BigInteger.valueOf(add));
+    public MyBigInteger(String s) {
+        super(new BigInteger(s));
     }
 
     @Override
@@ -31,7 +31,7 @@ public class MyBigInteger extends MyNumber<BigInteger> {
 
     @Override
     public MyNumber<BigInteger> divide(MyNumber<BigInteger> other) {
-        if (other.value.compareTo(BigInteger.ZERO) == 0) {
+        if (BigInteger.ZERO.equals(other.getValue())) {
             throw new DivideByZeroException("Cannot calculate " + value + " / " + other.value);
         }
         return new MyBigInteger(value.divide(other.value));
@@ -40,5 +40,22 @@ public class MyBigInteger extends MyNumber<BigInteger> {
     @Override
     public MyNumber<BigInteger> negate() {
         return new MyBigInteger(value.negate());
+    }
+
+    @Override
+    public MyNumber<BigInteger> min(MyNumber<BigInteger> y) {
+        int cmp = value.compareTo(y.value);
+        return new MyBigInteger(cmp < 0 ? this.getValue() : y.getValue());
+    }
+
+    @Override
+    public MyNumber<BigInteger> max(MyNumber<BigInteger> y) {
+        int cmp = value.compareTo(y.value);
+        return new MyBigInteger(cmp > 0 ? this.getValue() : y.getValue());
+    }
+
+    @Override
+    public MyNumber<BigInteger> count() {
+        return new MyBigInteger(new BigInteger(String.valueOf(value.bitCount())));
     }
 }

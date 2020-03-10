@@ -1,5 +1,7 @@
 package queue;
 
+import java.util.Arrays;
+
 public class ArrayQueue extends AbstractQueue {
     private final static int START_CAPACITY = 8;
     private Object[] elements = new Object[START_CAPACITY];
@@ -23,17 +25,18 @@ public class ArrayQueue extends AbstractQueue {
 
     private void checkCapacity() {
         if (size() >= elements.length) {
-            // elements = Arrays.copyOf(toArray(),  elements.length * 2);
+            elements = Arrays.copyOf(toArray(), elements.length * 2);
+            /*
             Object[] arr0 = new Object[elements.length * 2];
             Node v = front;
             for (int j = 0; j < size(); j++) {
                 arr0[j] = get(v);
                 v = next(v);
             }
+             */
             end = new Index(size());
             front = new Index(0);
-            elements = arr0;
-            // */
+
         }
     }
 
