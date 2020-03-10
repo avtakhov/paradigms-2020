@@ -72,8 +72,11 @@ public class ArrayQueueADT {
     private static void checkCapacity(ArrayQueueADT q, int size) {
         if (size >= q.elements.length) {
             Object[] arr0 = new Object[q.elements.length * 2];
-            for (int i = q.front, j = 0; i != q.end; i = inc(i, q.elements.length), j++) {
-                arr0[j] = q.elements[i];
+            if (q.front <= q.end) {
+                System.arraycopy(q.elements, q.front, arr0, 0, size(q));
+            } else {
+                System.arraycopy(q.elements, q.front, arr0, 0, q.elements.length - q.front);
+                System.arraycopy(q.elements, 0, arr0, q.elements.length - q.front, q.end);
             }
             q.end = size(q);
             q.front = 0;

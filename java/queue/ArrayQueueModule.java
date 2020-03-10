@@ -71,8 +71,11 @@ public class ArrayQueueModule {
     private static void checkCapacity(int size) {
         if (size >= elements.length) {
             Object[] arr0 = new Object[elements.length * 2];
-            for (int i = front, j = 0; i != end; i = inc(i), j++) {
-                arr0[j] = elements[i];
+            if (front <= end) {
+                System.arraycopy(elements, front, arr0, 0, size());
+            } else {
+                System.arraycopy(elements, front, arr0, 0, elements.length - front);
+                System.arraycopy(elements, 0, arr0, elements.length - front, end);
             }
             end = size();
             front = 0;

@@ -9,6 +9,10 @@ public class MyInteger extends MyNumber<Integer> {
         super(i);
     }
 
+    public MyInteger(String s) {
+        super(Integer.parseInt(s));
+    }
+
     @Override
     public MyNumber<Integer> add(MyNumber<Integer> other) {
         int a = value;
@@ -64,5 +68,22 @@ public class MyInteger extends MyNumber<Integer> {
             throw new OverflowException("Cannot calculate -" + value);
         }
         return new MyInteger(-value);
+    }
+
+    @Override
+    public MyNumber<Integer> min(MyNumber<Integer> y) {
+        int cmp = value.compareTo(y.value);
+        return new MyInteger(cmp < 0 ? this.getValue() : y.getValue());
+    }
+
+    @Override
+    public MyNumber<Integer> max(MyNumber<Integer> y) {
+        int cmp = value.compareTo(y.value);
+        return new MyInteger(cmp > 0 ? this.getValue() : y.getValue());
+    }
+
+    @Override
+    public MyNumber<Integer> count() {
+        return new MyInteger(Integer.bitCount(value));
     }
 }

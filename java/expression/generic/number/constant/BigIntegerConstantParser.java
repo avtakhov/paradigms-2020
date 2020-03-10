@@ -8,6 +8,6 @@ import java.math.BigInteger;
 public class BigIntegerConstantParser implements ConstParser<BigInteger> {
     @Override
     public Const<BigInteger> parse(String expression) {
-        return new Const<>(new MyBigInteger(new BigInteger(expression)));
+        return new Const<>(new MyBigInteger(expression));
     }
 }

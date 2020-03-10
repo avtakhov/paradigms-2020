@@ -21,5 +21,10 @@ public abstract class MyNumber<T> {
 
     public abstract MyNumber<T> negate();
 
+    public abstract MyNumber<T> min(MyNumber<T> y);
+
+    public abstract MyNumber<T> max(MyNumber<T> y);
+
+    public abstract MyNumber<T> count();
 }
 

@@ -13,10 +13,9 @@ public class ExpressionParser<T> extends BaseParser implements Parser<T> {
             "-", 1,
             "*", 2,
             "/", 2,
-            "<<", 0,
-            ">>", 0,
-            "log2", -1,
-            "pow2", -1
+            "min", 0,
+            "max", 0,
+            "count", -1
     );
     final int LAST_PRIORITY = 3;
     final int START_PRIORITY = 0;
@@ -111,6 +110,12 @@ public class ExpressionParser<T> extends BaseParser implements Parser<T> {
                 case "/":
                     result = new Divide<>(result, parseOperation(priority + 1));
                     break;
+                case "min":
+                    result = new Min<>(result, parseOperation(priority + 1));
+                    break;
+                case "max":
+                    result = new Max<>(result, parseOperation(priority + 1));
+                    break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + operator);
             }
@@ -130,6 +135,8 @@ public class ExpressionParser<T> extends BaseParser implements Parser<T> {
             } else {
                 return new Negative<>(parseOperation(LAST_PRIORITY));
             }
+        } else if (Objects.equals("count", operator)) {
+            return new Count<>(parseOperation(LAST_PRIORITY));
         } else if (operator != null) {
             throw new NoArgumentException(getPos() + ": " + "expected number or expression");
         }
