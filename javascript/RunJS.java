@@ -22,6 +22,7 @@ public class RunJS {
         }
 
         public void include(final String file) throws IOException, ScriptException {
+            System.out.println("Hello");
             engine.eval(new FileReader(file, StandardCharsets.UTF_8));
         }
     }
