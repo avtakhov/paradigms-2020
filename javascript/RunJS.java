@@ -36,7 +36,7 @@ public class RunJS {
             return;
         }
 
-    	engine.put("polyglot.js.allowAllAccess", true);
+        engine.put("polyglot.js.allowAllAccess", true);
         engine.put("io", new IO(engine));
 
         engine.eval("var global = this;");

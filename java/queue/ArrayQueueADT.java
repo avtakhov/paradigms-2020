@@ -1,6 +1,6 @@
 package queue;
 
-public class ArrayQueueADT {
+public final class ArrayQueueADT {
     // front - index of first element int queue
     // end - index of new element after enqueue()
     private Object[] elements = new Object[8];
@@ -57,6 +57,7 @@ public class ArrayQueueADT {
     }
 
     // '[' + all values from front to end, divided by comma + ']'
+    // PRE : q != null
     public static String toStr(ArrayQueueADT q) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = q.front; i != q.end; i = inc(i, q.elements.length)) {
