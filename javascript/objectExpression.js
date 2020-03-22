@@ -16,20 +16,25 @@ Binary.prototype.toString = function () {
 };
 
 function Add(first, second) {
-    return new Binary(first, second, (a, b) => a + b, '+');
+    Binary.call(this, first, second, (a, b) => a + b, '+');
+    // return new Binary(first, second, (a, b) => a + b, '+');
 }
+Add.prototype = Object.create(Binary.prototype);
 
 function Subtract(first, second) {
-    return new Binary(first, second, (a, b) => a - b, '-');
+    Binary.call(this, first, second, (a, b) => a - b, '-');
 }
+Subtract.prototype = Object.create(Binary.prototype);
 
 function Multiply(first, second) {
-    return new Binary(first, second, (a, b) => a * b, '*');
+    Binary.call(this, first, second, (a, b) => a * b, '*');
 }
+Multiply.prototype = Object.create(Binary.prototype);
 
 function Divide(first, second) {
-    return new Binary(first, second, (a, b) => a / b, '/');
+    Binary.call(this, first, second, (a, b) => a / b, '/');
 }
+Divide.prototype = Object.create(Binary.prototype);
 
 function Unary(first, apply, strOperation) {
     this.first = first;
@@ -46,9 +51,10 @@ Unary.prototype.toString = function () {
 };
 
 function Negate(first) {
-    // Unary.call(this, first, x => -x, 'negate');
-    return new Unary(first, x => -x, 'negate');
+    Unary.call(this, first, x => -x, 'negate');
+    // return new Unary(first, x => -x, 'negate');
 }
+Negate.prototype = Object.create(Unary.prototype);
 
 function Const(c) {
     this.c = c;
