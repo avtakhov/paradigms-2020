@@ -1,30 +1,64 @@
 "use strict";
 
-const cnst = value => x => value;
-const variable = () => x => x;
-const add = (a, b) => x => a(x) + b(x);
-const subtract = (a, b) => x => a(x) - b(x);
-const divide = (a, b) => x => a(x) / b(x);
-const multiply = (a, b) => x => a(x) * b(x);
-const parseSimple = input => input.trim() === "x" ? variable("x") : cnst(+input);
+const cnst = value => () => value;
 
-const operations = {
+const variable = (s) => function () {
+//     println(s);
+//     println(arguments[0] + " " + arguments[1] + " " + arguments[2]);
+    return arguments["xyz".indexOf(s)];
+};
+
+const binary = fun => (a, b) => (x, y, z) => fun(a(x, y, z), b(x, y ,z));
+
+const add = binary((a, b) => a + b);
+const subtract = binary((a, b) => a - b);
+const multiply = binary((a, b) => a * b);
+const divide = binary((a, b) => a / b);
+
+const binaryOperations = {
     '+': add,
     '-': subtract,
     '/': divide,
     '*': multiply
 };
 
+const unary = fun => a => (x, y, z) => fun(a(x, y, z));
+
+const sin = unary((a) => Math.sin(a));
+const cos = unary((a) => Math.cos(a));
+const negate = unary((a) => -a);
+const pi = cnst(Math.PI);
+const e = cnst(Math.E);
+
+const unaryOperations = {
+    'sin': sin,
+    'cos': cos,
+    'negate': negate
+}
+
+const constants = {
+    'e': e,
+    'pi': pi
+}
+
+function isDigit(s) {
+    return +s === +s;
+}
+
 const parse = s => {
     let a = s.split(' ').filter(x => x !== '');
     let st = [];
     for (let i of a) {
-        if (i in operations) {
+        if (i in binaryOperations) {
             let second = st.pop();
             let first = st.pop();
-            st.push(operations[i](first, second));
+            st.push(binaryOperations[i](first, second));
+        } else if (i in unaryOperations) {
+            st.push(unaryOperations[i](st.pop()));
+        } else if (i in constants) {
+            st.push(constants[i]);
         } else {
-            st.push(parseSimple(i));
+            st.push(isDigit(i) ? cnst(+i) : variable(i));
         }
     }
     return st[0];
