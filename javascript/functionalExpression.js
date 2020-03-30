@@ -39,10 +39,19 @@ const unaryOperations = {
 const constants = {
     'e': e,
     'pi': pi
-}
+};
 
 function isDigit(s) {
-    return +s === +s;
+    if (s.length === 0) {
+        return false;
+    }
+    let start = s.charAt(0) === '-' ? 1 : 0;
+    for (let i = start; i < s.length; i++) {
+        if (!('0' <= s.charAt(i) && s.charAt(i) <= '9')) {
+            return false;
+        }
+    }
+    return true;
 }
 
 const parse = s => {
