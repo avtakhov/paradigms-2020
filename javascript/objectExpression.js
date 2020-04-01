@@ -1,5 +1,49 @@
 "use strict";
 
+
+// Errors
+function ParserError(message) {
+    this.message = message;
+}
+
+ParserError.prototype = Object.create(Error.prototype);
+ParserError.constructor = ParserError;
+ParserError.prototype.name = 'ParserError';
+
+
+function UnexpectedCharError(message) {
+    this.message = message;
+}
+UnexpectedCharError.prototype = Object.create(ParserError.prototype);
+UnexpectedCharError.constructor = UnexpectedCharError;
+UnexpectedCharError.prototype.name = 'UnexpectedCharError';
+
+
+function ParserArithmeticError(message) {
+    this.message = message;
+}
+ParserArithmeticError.prototype = Object.create(ParserError.prototype);
+ParserArithmeticError.constructor = ParserArithmeticError;
+ParserArithmeticError.prototype.name = 'ParserArithmeticError';
+
+
+function ExpressionError(message) {
+    this.message = message;
+}
+ExpressionError.prototype = Object.create(Error.prototype);
+ExpressionError.constructor = ExpressionError;
+ExpressionError.prototype.name = 'ExpressionError';
+
+function VariableError(message) {
+    this.message = message;
+}
+VariableError.prototype = Object.create(ExpressionError.prototype);
+VariableError.constructor = VariableError;
+VariableError.prototype.name = 'VariableError';
+
+
+
+// Expression tree
 function Operator(apply, strOperation, ...args) {
     this.args = args;
     this.apply = apply;
@@ -52,6 +96,21 @@ function Const(c) {
     this.c = c;
 }
 
+
+function Sinh(a) {
+    Operator.call(this, (x) => Math.sinh(x), 'sinh', a);
+}
+
+Sinh.prototype = Object.create(Operator.prototype);
+
+function Cosh(a) {
+    Operator.call(this, (x) => Math.cosh(x), 'cosh', a);
+}
+
+Cosh.prototype = Object.create(Operator.prototype);
+
+
+
 Const.prototype.evaluate = function () {
     return this.c;
 };
@@ -65,12 +124,10 @@ Const.prototype.prefix = Const.prototype.toString;
 
 function Variable(str) {
     this.str = str;
-    if (!(str in this.names)) {
-        throw new Error("Invalid variable name: '" + str + "'");
+    if ('x@y@z'.indexOf(str) === -1) {
+        throw new VariableError("Invalid variable name: '" + str + "'");
     }
 }
-
-Variable.prototype.names = {"x" : 1, "y" : 1, "z" : 1};
 
 Variable.prototype.evaluate = function (x, y, z) {
     switch (this.str) {
@@ -88,6 +145,8 @@ Variable.prototype.toString = function () {
 };
 Variable.prototype.prefix = Variable.prototype.toString;
 
+
+// Parser
 function isLetter(ch) {
     return 'a' <= ch && ch <= 'z';
 }
@@ -126,7 +185,7 @@ const BaseParser = function () {
     this.expectString = function (s) {
         for (let char of s) {
             if (this.get() !== char) {
-                throw new Error("expected " + char);
+                throw new UnexpectedCharError(this.getPos() + ": expected " + "'" + char + "', found '" + this.get() + "'");
             }
             this.next();
         }
@@ -138,9 +197,9 @@ const BaseParser = function () {
     };
 };
 
-const Operation = function (operation, count) {
+const Operation = function (operation, arity) {
     this.operation = operation;
-    this.count = count;
+    this.count = arity;
 };
 
 const OPERATIONS = {
@@ -152,16 +211,7 @@ const OPERATIONS = {
 };
 
 function isDigit(s) {
-    if (s.length === 0) {
-        return false;
-    }
-    let start = s.charAt(0) === '-' ? 1 : 0;
-    for (let i = start; i < s.length; i++) {
-        if (!('0' <= s.charAt(i) && s.charAt(i) <= '9')) {
-            return false;
-        }
-    }
-    return true;
+    return '0' <= s && s <= '9';
 }
 
 const Parser = function () {
@@ -177,11 +227,20 @@ const Parser = function () {
 
     this.parse = function (s) {
         this.setSource(s);
-        let ans = this.parseExpression();
+        let ans;
+        try {
+            ans = this.parseExpression();
+        } catch (e) {
+            if (e instanceof ExpressionError) {
+                throw new ParserArithmeticError(this.getPos() + ": " + e.message);
+            } else {
+                throw e;
+            }
+        }
         if (this.ended()) {
             return ans;
         } else {
-            throw new Error("Unexpected symbol");
+            throw new UnexpectedCharError(this.getPos() + ": Unexpected symbol " + "'" +this.get() + "'");
         }
     };
 
@@ -195,7 +254,7 @@ const Parser = function () {
 
     this.parseSimple = function () {
         this.skipSpaces();
-        if (isDigit(this.get() || this.get() === '-')) {
+        if (isDigit(this.get()) || this.get() === '-') {
             return this.parseNumber();
         } else {
             return this.parseVariable();
@@ -212,7 +271,8 @@ const Parser = function () {
                 return OPERATIONS[s];
             }
         }
-        return undefined;
+
+        throw new UnexpectedCharError(this.getPos() + ": Expected operator in (), found '" + this.get() + "'");
     };
 
     this.parseExpression = function () {
@@ -228,8 +288,11 @@ const Parser = function () {
         this.skipSpaces();
         this.expectString('(');
         let op = this.parseOperation();
+        if (op === undefined) {
+
+        }
         if (this.get() !== '(' && this.get() !== ' ') {
-            throw new Error("missing ' ' after operation");
+            throw new UnexpectedCharError(this.getPos() + ": " + "missing ' ' after operation");
         }
         let a = [];
         for (let i = 0; i < op.count; i++) {
@@ -247,6 +310,11 @@ const parsePrefix = function(s) {
     return p.parse(s);
 };
 
-let c = new Add(new Variable('x'), new Const(2));
-
-console.log(c.toString());
+let tests = ['-@5', '(+ x 2)x', '(+x 2)', '(** x 2)', '(+)(x)(x)', '(+ -5 -@5)', '(kek)', 'kek', '-1-'];
+for (let test of tests) {
+    try {
+        let e = parsePrefix(test);
+    } catch (e) {
+        console.log("test = '" + test + "'  " + e.name + ": " + "'" + e.message + "'\n");
+    }
+}
