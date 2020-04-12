@@ -41,8 +41,6 @@ VariableError.prototype = Object.create(ExpressionError.prototype);
 VariableError.constructor = VariableError;
 VariableError.prototype.name = 'VariableError';
 
-
-
 // Expression tree
 function Operator(apply, strOperation, ...args) {
     this.args = args;
