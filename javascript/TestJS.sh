@@ -9,8 +9,8 @@ mkdir -p _out
 
 JS="$(dirname "$0")"
 
-javac -d "_out" "--class-path=$JS/../javascript:$JS/../java" "$JS/jstest/prefix/PrefixParserTest.java" \
+javac -d "_out" "--class-path=$JS/../javascript:$JS/../java" "$JS/jstest/prefix/PrefixSumAvgTest.java" \
     && java \
         -ea \
         "--module-path=$JS/graal" \
-        "--class-path=_out" jstest.prefix.PrefixParserTest "$1"
+        "--class-path=_out" jstest.prefix.PrefixSumAvgTest "$1"

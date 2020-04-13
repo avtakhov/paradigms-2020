@@ -3,17 +3,15 @@
 const cnst = value => () => value;
 
 const variable = (s) => function () {
-//     println(s);
-//     println(arguments[0] + " " + arguments[1] + " " + arguments[2]);
     return arguments["xyz".indexOf(s)];
 };
 
-const binary = fun => (a, b) => (x, y, z) => fun(a(x, y, z), b(x, y ,z));
+const operator = fun => (...args) => (x, y, z) => fun(...args.map(i => i(x, y, z)));
 
-const add = binary((a, b) => a + b);
-const subtract = binary((a, b) => a - b);
-const multiply = binary((a, b) => a * b);
-const divide = binary((a, b) => a / b);
+const add = operator((a, b) => a + b);
+const subtract = operator((a, b) => a - b);
+const multiply = operator((a, b) => a * b);
+const divide = operator((a, b) => a / b);
 
 const binaryOperations = {
     '+': add,
@@ -22,11 +20,9 @@ const binaryOperations = {
     '*': multiply
 };
 
-const unary = fun => a => (x, y, z) => fun(a(x, y, z));
-
-const sin = unary((a) => Math.sin(a));
-const cos = unary((a) => Math.cos(a));
-const negate = unary((a) => -a);
+const sin = operator((a) => Math.sin(a));
+const cos = operator((a) => Math.cos(a));
+const negate = operator((a) => -a);
 const pi = cnst(Math.PI);
 const e = cnst(Math.E);
 
@@ -34,7 +30,7 @@ const unaryOperations = {
     'sin': sin,
     'cos': cos,
     'negate': negate
-}
+};
 
 const constants = {
     'e': e,
