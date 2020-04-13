@@ -1,16 +1,18 @@
-(defn v+
-  [a b]
-  (mapv + a b)
+(defn vv
+		[func]
+		(fn [v1 v2] (mapv func v1 v2))
 )
 
-(defn v*
-  [a b]
-  (mapv * a b)
+(def v+
+  (vv +)
 )
 
-(defn v-
-  [a b]
-  (mapv - a b)
+(def v*
+		(vv *)
+)
+
+(def v-
+		(vv -)
 )
 
 (defn scalar
@@ -20,17 +22,47 @@
 
 (defn vect
   [a b]
-  {
-    :pre ((== 2 (count a)) (== 2 (count b)))
-  }
-  (- (* (nth a 0)(nth b 1)) (* (nth b 0)(nth a 1)))
+  (letfn 
+  		[
+    		(vect2 [x y] (- (* (nth a x) (nth b y)) (* (nth b x) (nth a y))))
+    ]
+    (vector (vect2 1 2) (- (vect2 0 2)) (vect2 0 1))
+  )
 )
 
 (defn v*s
-  [v, s]
+  [v s]
   (mapv (fn [x] (* x s)) v)
 )
 
+(def m+
+		(vv v+)
+)
 
+(def m-
+		(vv v-)
+)
 
-(println (v*s [1, 2], 5))
+(def m*
+		(vv v*)
+)
+
+(defn m*s
+	 [m s]
+	 (mapv (fn [x] (v*s x s)) m)
+)
+
+(defn m*v
+		[m v]
+		(mapv (fn [x] (scalar x v)) m)
+)
+
+(defn transpose
+		[m]
+		(apply mapv vector m)
+)
+
+(defn m*m
+		[m1 m2]
+		(mapv (fn [row1] (mapv (fn [row2] (scalar row1 row2)) (transpose m2))) m1)
+)

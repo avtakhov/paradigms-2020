@@ -10,7 +10,6 @@ import java.util.*;
  */
 public abstract strictfp class BaseTest extends Asserts {
     protected final Random random = new Random(7240958270485L);
-
     protected final TestCounter counter = new TestCounter();
 
     protected BaseTest() {
