@@ -3,6 +3,15 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/paradigms/homeworks.html)
 
 
+## Домашнее задание 10. Функциональные выражения на Clojure
+
+Модификации
+ * *Базовая*
+    * Код должен находиться в файле `expression.clj`.
+    * [Исходный код тестов](clojure/cljtest/functional/ClojureFunctionalExpressionTest.java)
+        * Запускать c аргументом `easy` или `hard`
+
+
 ## Домашнее задание 9. Линейная алгебра на Clojure
 
 Модификации
@@ -11,6 +20,24 @@
     * Исходный код тестов
         * [Простой вариант](clojure/cljtest/linear/LinearBinaryTest.java)
         * [Сложный вариант](clojure/cljtest/linear/LinearNaryTest.java)
+ * *Shapeless*
+    * Добавьте операции поэлементного сложения (`s+`),
+        вычитания (`s-`) и умножения (`s*`) чисел и
+        векторов любой (в том числе, переменной) формы.
+        Например, `(s+ [[1 2] 3] [[4 5] 6])` должно быть равно `[[5 7] 9]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearShapelessTest.java)
+ * *Cuboid*
+    * Назовем _кубоидом_ трехмерную прямоугольную таблицу чисел.
+    * Добавьте операции поэлементного сложения (`c+`),
+        вычитания (`c-`), умножения (`c*`) и деления (`cd`) кубоидов.
+        Например, `(с+ [[[1] [2]] [[3] [4]]] [[[5] [6]] [[7] [8]]])` должно быть равно `[[[6] [8]] [[10] [12]]]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearCuboidTest.java)
+ * *Tensor*
+    * Назовем _тензором_ многомерную прямоугольную таблицу чисел.
+    * Добавьте операции поэлементного сложения (`t+`),
+        вычитания (`t-`) и умножения (`t*`) тензоров.
+        Например, `(t+ [[1 2] [3 4]] [[5 6] [7 8]])` должно быть равно `[[6 8] [10 12]]`.
+    * [Исходный код тестов](clojure/cljtest/linear/LinearTensorTest.java)
 
 Для запуска тестов можно использовать скрипты
 [TestClojure.cmd](clojure/TestClojure.cmd) и [TestClojure.sh](clojure/TestClojure.sh)
@@ -42,6 +69,13 @@
  * [Списки](clojure/examples/1_3_lists.clj)
  * [Вектора](clojure/examples/1_4_vectors.clj)
  * [Функции высшего порядка](clojure/examples/1_5_functions-2.clj)
+
+Лекция 2. Внешний мир
+ * [Ввод-вывод](clojure/examples/2_1_io.clj)
+ * [Разбор и гомоиконность](clojure/examples/2_2_read.clj)
+ * [Порядки вычислений](clojure/examples/2_3_evaluation-orders.clj)
+ * [Потоки](clojure/examples/2_4_streams.clj)
+ * [Отображения и множества](clojure/examples/2_5_maps.clj)
 
 
 ## Домашнее задание 8. Обработка ошибок на JavaScript
