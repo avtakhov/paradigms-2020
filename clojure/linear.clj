@@ -22,10 +22,10 @@
 
 (defn vect
   [a b]
-  (letfn 
-  		[
-    		(vect2 [x y] (- (* (nth a x) (nth b y)) (* (nth b x) (nth a y))))
-    ]
+  (letfn
+	 		[
+						(vect2 [x y] (- (* (nth a x) (nth b y)) (* (nth b x) (nth a y))))
+   	]
     (vector (vect2 1 2) (- (vect2 0 2)) (vect2 0 1))
   )
 )
