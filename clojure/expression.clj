@@ -17,6 +17,10 @@
 
 (def negate (oper -))
 
+(def my_min (oper min))
+
+(def my_max (oper max))
+
 (defn parseFunction [str]
   (letfn
     [(parseList [lst]
@@ -24,7 +28,9 @@
                                "-"      subtract
                                "*"      multiply
                                "/"      divide
-                               "negate" negate}
+                               "negate" negate
+                               "max" my_max
+                               "min" my_min}
                       ]
                   (apply (get operMap (name (first lst))) (mapv parseSomething (pop lst)))))
 
