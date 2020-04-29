@@ -1,53 +1,122 @@
-(defn oper [func]
-  (fn [v1 v2] (mapv func v1 v2)))
+; checking
+(defn checkSize [& vectors]
+  (every?
+    (fn [vector] (== (count vector) (count (first vectors))))
+    vectors))
 
-(def v+
-  (oper +))
+(defn checkVector [vectors]
+  (every?
+    (fn [vector]
+      (and (vector? vector) (every? number? vector))
+      )
+    vectors))
 
-(def v*
-  (oper *))
+(defn full_check_vector [& vectors]
+  (and (checkSize vectors)
+       (checkVector vectors))
+  )
 
-(def v-
-  (oper -))
+(defn checkMatrix [& matrices]
+  (every?
+    (fn [matrix]
+      (and
+        (vector? matrix)
+        (full_check_vector matrix)))
+    matrices))
 
-(defn scalar [a b]
-  (apply + (v* a b)))
+(defn matrixSize [& matrices]
+  (checkMatrix (mapv first matrices)))
 
-(defn vect
-  [a b]
+(defn full_check_matrices [& matrices]
+  (and (checkMatrix matrices)
+       (matrixSize matrices)))
+
+(defn transpose [matrix]
+  {
+   :pre [(full_check_matrices matrix)]
+   }
+  (apply mapv vector matrix))
+
+(defn rightMultiply [first second]
+  (== (count first) (count (transpose second))))
+
+;..............................................................
+(defn vectorOperation [function]
+  (fn [& vectors]
+    {:pre  [(full_check_vector vectors)]
+     :post [(checkVector %) (checkSize % (first vectors))]}
+    (apply mapv function vectors)))
+
+(def v+ (vectorOperation +))
+
+(def v- (vectorOperation -))
+
+(def v* (vectorOperation *))
+
+(defn scalar [first second]
+  {
+   :pre [(full_check_vector first second)]
+   :post [(number? %)]
+   }
+  (apply + (v* first second)))
+
+(defn vect [& vectors]
+  (letfn [(multiply [first second]
+            {
+             :pre [(full_check_vector first second) (== (count first) 3)]
+             :post [(checkVector %) (== (count %) 3)]
+             }
+            (vector (- (* (nth first 1) (nth second 2)) (* (nth first 2) (nth second 1)))
+                    (- (- (* (nth first 0) (nth second 2)) (* (nth first 2) (nth second 0))))
+                    (- (* (nth first 0) (second 1)) (* (first 1) (nth second 0)))
+                    )
+            )]
+  (if (== (count vectors) 1)
+    (first vectors)
+    (multiply (first vectors) (vect (rest vectors)))
+    )
+  ))
+
+(defn v*s [vector scalar]
+  {
+   :pre [(full_check_vector vector)]
+   }
+  (mapv (fn [element] (* element scalar)) vector))
+
+(defn matrixOperations [function]
+  (fn [& matrix]
+    {
+     :pre [(full_check_matrices matrix)]
+     }
+    (apply mapv function matrix)))
+
+(def m+ (matrixOperations v+))
+
+(def m- (matrixOperations v-))
+
+(def m* (matrixOperations v*))
+
+(defn m*s [matrix scalar]
+  {
+   :pre [(full_check_matrices matrix)]
+   }
+  (mapv (fn [vector] (v*s vector scalar)) matrix))
+
+(defn m*m [& matrix]
+  {
+   :pre [(full_check_matrices matrix)]
+   }
   (letfn
-    [(vect2 [x y] (- (* (nth a x) (nth b y)) (* (nth b x) (nth a y))))]
-    (vector (vect2 1 2) (- (vect2 0 2)) (vect2 0 1))))
-
-(defn v*s [v s]
-  (mapv (fn [x] (* x s)) v))
-
-(def m+ (oper v+))
-
-(def m- (oper v-))
-
-(def m* (oper v*))
-
-(defn m*s [m s]
-  (mapv (fn [x] (v*s x s)) m))
-
-(defn m*v [m v]
-  (mapv (fn [x] (scalar x v)) m))
-
-(defn transpose [m]
-  (apply mapv vector m))
-
-(defn m*m [m1 m2]
-  (mapv (fn [row1] (mapv (fn [row2] (scalar row1 row2)) (transpose m2))) m1))
-
-(defn shapelessOper [func]
-  (fn calc [a b]
-    (cond
-      (number? a) (func a b)
-      :else       (mapv calc a b))))
-
-(def s+ (shapelessOper +))
-
-(def s* (shapelessOper *))
-
-(def s- (shapelessOper -))
+    [(matrixMulti
+       [first second]
+       {
+        :pre [(rightMultiply first second)]
+        }
+       (transpose
+         (mapv (fn [row_second]
+                 (mapv (fn [row_first]
+                         (scalar row_first row_second)) first))
+               (transpose second))))]
+  (if (= (count matrix) 1)
+  (first matrix)
+  (matrixMulti (first matrix) (m*m (rest matrix))))))

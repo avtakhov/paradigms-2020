@@ -17,26 +17,26 @@
 
 (def negate (oper -))
 
-(def my_min (oper min))
+(def min (oper clojure.core/min))
 
-(def my_max (oper max))
+(def max (oper clojure.core/max))
 
 (defn parseFunction [str]
   (letfn
     [(parseList [lst]
-                (let [operMap {"+"      add
-                               "-"      subtract
-                               "*"      multiply
-                               "/"      divide
-                               "negate" negate
-                               "max" my_max
-                               "min" my_min}
-                      ]
-                  (apply (get operMap (name (first lst))) (mapv parseSomething (pop lst)))))
+       (let [operMap {"+"      add
+                      "-"      subtract
+                      "*"      multiply
+                      "/"      divide
+                      "negate" negate
+                      "max"    max
+                      "min"    min}
+             ]
+         (apply (get operMap (name (first lst))) (mapv parseSomething (pop lst)))))
 
      (parseSomething [smth]
-                     (cond
-                       (list? smth)   (parseList smth)
-                       (number? smth) (constant smth)
-                       :else          (variable (name smth))))]
+       (cond
+         (list? smth) (parseList smth)
+         (number? smth) (constant smth)
+         :else (variable (name smth))))]
     (parseSomething (read-string str))))
