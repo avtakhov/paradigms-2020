@@ -41,7 +41,7 @@
 
 (defn Operation [& args]
   {:evaluate (fn [self values] (apply ((field :user-fun) self) (mapv (fn [x] (evaluate x values)) ((field :args) self))))
-   :diff     (fn [self target] (apply ((field :diff-fun) self) target ((field :args) self)))
+   :diff     (fn [self target] (((field :diff-fun) self) target))
    :toString (fn [self] (apply str "(" ((field :str-value) self) " " (clojure.string/join " " (mapv toString ((field :args) self))) ")"))
    :args     args})
 
@@ -54,18 +54,16 @@
 (defn Add [& args]
   {:proto (apply constructor
                  +
-                 (fn [target & args]
-                   (apply Add
-                          (mapv (fn [x] (diff x target)) args)))
+                 (fn [target]
+                   (apply Add (mapv (fn [x] (diff x target)) args)))
                  "+"
                  args)})
 
 (defn Subtract [& args]
   {:proto (apply constructor
                  -
-                 (fn [target & args]
-                   (apply Subtract
-                          (mapv (fn [x] (diff x target)) args)))
+                 (fn [target]
+                   (apply Subtract (mapv (fn [x] (diff x target)) args)))
                  "-"
                  args)})
 
@@ -73,37 +71,27 @@
 (defn Multiply [& args]
   {:proto (apply constructor
                  *
-                 (fn [target & args]
-                   (if (= 1 (count args))
-                     (diff (first args) target)
-                     (Add
-                       (Multiply (diff (first args) target) (apply Multiply (rest args)))
-                       (Multiply (first args) (diff (apply Multiply (rest args)) target)))))
+                 (fn [target] (reduce (fn [x y] (Add
+                                                  (Multiply (diff x target) y)
+                                                  (Multiply (diff y target) x))) args))
                  "*"
                  args)})
 
 (defn Divide [& args]
   {:proto (apply constructor
-                 (fn [& args]
-                   (if
-                     (= 1 (count args))
-                     (/ 1.0 (first args))
-                     (/ (double (first args)) (apply * (rest args)))))
-                 (fn [target & args]
-                   (if (= 1 (count args))
-                     (Divide one (Multiply (first args) (first args)))
-                     (Divide
-                       (Subtract
-                         (Multiply (diff (first args) target) (apply Multiply (rest args)))
-                         (Multiply (diff (apply Multiply (rest args)) target) (first args)))
-                       (Multiply (apply Multiply (rest args)) (apply Multiply (rest args))))))
+                 (fn [x y] (/ (double x) y))
+                 (fn [target] (reduce (fn [x y] (Divide
+                                                  (Subtract
+                                                    (Multiply (diff x target) y)
+                                                    (Multiply (diff y target) x))
+                                                  (Multiply y y))) args))
                  "/"
                  args)})
 
 (defn Negate [x]
   {:proto (constructor
             -
-            (fn [target x] (Negate (diff x target)))
+            (fn [target] (Negate (diff x target)))
             "negate"
             x)})
 
@@ -124,5 +112,3 @@
          (number? smth) (Constant smth)
          :else (Variable (name smth))))]
     (parseSomething (read-string str))))
-
-(println (toString (diff (Divide (Constant 5.0) (Variable "z")) "x")))
