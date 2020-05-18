@@ -95,6 +95,37 @@
             "negate"
             x)})
 
+(declare e Lg)
+
+(defn abs [n] (max n (- n)))
+
+(defn Ln [x] {:proto (constructor
+                       (fn [x] (Math/log (abs x)))
+                       (fn [target] (Divide (diff x target) x))
+                       "!kek!"
+                       x)})
+
+(defn Pw [x y]
+  {:proto (constructor
+            (fn [x y] (Math/pow x y))
+            (fn [target] (Multiply
+                           (diff (Multiply (Ln x) y) target)
+                           (Pw x y)))
+            "pw"
+            x
+            y)})
+
+
+(defn Lg [x base]
+  {:proto (constructor
+            (fn [x base] (/ (Math/log (abs base)) (Math/log (abs x))))
+            (fn [target] (diff (Divide (Ln base) (Ln x)) target))
+            "lg"
+            x
+            base)})
+
+(def e (Constant Math/E))
+
 (defn parseObject [str]
   (letfn
     [(parseList [lst]
@@ -102,7 +133,9 @@
                       "-"      Subtract
                       "*"      Multiply
                       "/"      Divide
-                      "negate" Negate}
+                      "negate" Negate
+                      "pw"     Pw
+                      "lg"     Lg}
              ]
          (apply (get operMap (name (first lst))) (mapv parseSomething (pop lst)))))
 
