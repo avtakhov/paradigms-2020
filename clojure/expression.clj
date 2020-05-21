@@ -254,25 +254,37 @@
 (defn +plus [p] (+seqf cons p (+star p)))
 (defn +str [p] (+map (partial apply str) p))
 
+
+
 (defn +stop-when [stop p]
   (_either (+seqf list stop) (+seqf (fn [x col] (conj col x)) p (delay (+stop-when stop p)))))
 
 (def *digit (+char "0123456789.-"))
-(def *number (+map (fn [s] (Constant (read-string x))) (+str (+plus *digit))))
+
+(def *number (+map (fn [s] (Constant (read-string s))) (+str (+plus *digit))))
 
 (def *string (+seqn 1 (+char "\"") (+str (+star (+char-not "\""))) (+char "\"")))
+
 (def *space (+char " \t\n\r"))
+
 (def *ws (+ignore (+star *space)))
 
 (def *all-chars (mapv char (range 32 128)))
 
 (def *letter (+char (apply str (filter #(Character/isLetter %) *all-chars))))
 
-(def *identifier (+str (+seqf cons *letter (+star (+or *letter *digit)))))
+(def *identifier (+map Variable (+str (+seqf cons *letter (+star (+or *letter *digit))))))
 
-(defn *string-value [input] (apply +seqf str (mapv +char (mapv str (seq (char-array input))))))
+(defn *string-value [input] (apply +seqf str (mapv +char (mapv str (seq input)))))
 
-(def *operation (let [oper ["+", "-", "*", "/", "negate"]] (apply +or (mapv *string-value oper))))
+(def *operation (let [oper {"+"      Add
+                            "-"      Subtract
+                            "*"      Multiply
+                            "/"      Divide
+                            "negate" Negate}] (apply +or
+                                                     (mapv
+                                                       (partial +map (fn [x] (get oper x)))
+                                                       (mapv *string-value (keys oper))))))
 
 (def *expression
   (+seqn 0
@@ -283,25 +295,12 @@
              0
              (+ignore (+char "("))
              *ws
-             (+stop-when (+seqn 0 *operation *ws (+ignore (+char ")"))) (delay *expression))
-             ))
+             (let [end (+seqn 0 *ws *operation *ws (+char ")"))
+                   lst (+stop-when end (delay *expression))
+                   expr (fn [x] (apply (last x) (drop-last x)))
+                   ans (+map expr lst)]
+               ans)))
          *ws))
 
-(defn trace [x] (do (println x) x))
+(def parseObjectSuffix (partial (comp -value *expression)))
 
-(defn parseObjectSuffix [input]
-  (letfn
-    [(parseVector [lst]
-       (let [operMap {"+"      Add
-                      "-"      Subtract
-                      "*"      Multiply
-                      "/"      Divide
-                      "negate" Negate}
-             ]
-         (apply (get operMap (last lst)) (mapv parseSomething (drop-last lst)))))
-     (parseSomething [smth]
-       (cond
-         (list? smth) (parseVector smth)
-         (number? smth) (Constant (double smth))
-         :else (Variable smth)))]
-    (parseSomething (-value (*expression input)))))
