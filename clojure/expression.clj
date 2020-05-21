@@ -41,7 +41,7 @@
          :else (variable (name smth))))]
     (parseSomething (read-string str))))
 
-;============================================================================================
+;==================================================================================================
 
 (defn proto-get [self key]
   (cond
@@ -65,9 +65,9 @@
 (declare zero Add)
 
 (def Constant-prototype
-  {:evaluate (fn [self values] ((field :value) self))
-   :diff     (fn [self target] zero)
-   :toString (fn [self] (format "%.1f" ((field :value) self)))
+  {:evaluate       (fn [self values] ((field :value) self))
+   :diff           (fn [self target] zero)
+   :toString       (fn [self] (format "%.1f" ((field :value) self)))
    :toStringSuffix (fn [self] (format "%.1f" ((field :value) self)))})
 
 (defn Constant [c]
@@ -88,10 +88,10 @@
    :value s})
 
 (defn Operation [& args]
-  {:evaluate (fn [self values] (apply ((field :user-fun) self) (mapv (fn [x] (evaluate x values)) args)))
-   :diff     (fn [self target] (((field :diff-fun) self) target))
-   :toString (fn [self] (apply str "(" ((field :str-value) self) " " (clojure.string/join " " (mapv toString args)) ")"))
-   :toStringSuffix (fn [self] (apply str "("  (clojure.string/join " " (mapv toStringSuffix args)) " " ((field :str-value) self) ")"))})
+  {:evaluate       (fn [self values] (apply ((field :user-fun) self) (mapv (fn [x] (evaluate x values)) args)))
+   :diff           (fn [self target] (((field :diff-fun) self) target))
+   :toString       (fn [self] (apply str "(" ((field :str-value) self) " " (clojure.string/join " " (mapv toString args)) ")"))
+   :toStringSuffix (fn [self] (apply str "(" (clojure.string/join " " (mapv toStringSuffix args)) " " ((field :str-value) self) ")"))})
 
 (defn constructor [user-fun diff-fun str-value & args]
   {:proto     (apply Operation args)
@@ -147,11 +147,12 @@
 
 (defn abs [n] (max n (- n)))
 
-(defn Ln [x] {:proto (constructor
-                       (fn [x] (Math/log (abs x)))
-                       (fn [target] (Divide (diff x target) x))
-                       "!kek!"
-                       x)})
+(defn Ln [x] {:proto    (constructor
+                          (fn [x] (Math/log (abs x)))
+                          (fn [target] (Divide (diff x target) x))
+                          "not_used"
+                          x)
+              :toString (str "(lg " (toString x) " e)")})
 
 (defn Pw [x y]
   {:proto (constructor
@@ -229,7 +230,6 @@
 (defn _parser [p]
   (fn [input]
     (-value ((_combine (fn [v _] v) p (_char #{\u0000})) (str input \u0000)))))
-(mapv (_parser (_combine str (_char #{\a \b}) (_char #{\x}))) ["ax" "ax~" "bx" "bx~" "" "a" "x" "xa"])
 
 
 (defn +char [chars] (_char (set chars)))
@@ -254,55 +254,54 @@
 (defn +plus [p] (+seqf cons p (+star p)))
 (defn +str [p] (+map (partial apply str) p))
 
-(def *digit (+char "0123456789"))
-(def *number (+map read-string (+str (+plus *digit))))
-(def *double (+map read-string (+seqf str (+opt (+char "-")) (+str (+plus *digit)) (+opt (+seqf str (+char "." ) (+str (+plus *digit)))))))
+(defn +stop-when [stop p]
+  (_either (+seqf list stop) (+seqf (fn [x col] (conj col x)) p (delay (+stop-when stop p)))))
+
+(def *digit (+char "0123456789.-"))
+(def *number (+map (fn [s] (Constant (read-string x))) (+str (+plus *digit))))
 
 (def *string (+seqn 1 (+char "\"") (+str (+star (+char-not "\""))) (+char "\"")))
 (def *space (+char " \t\n\r"))
 (def *ws (+ignore (+star *space)))
 
 (def *all-chars (mapv char (range 32 128)))
-;(def *letter (+char (apply str (filter #(Character/isLetter %) *all-chars))))
 
-(def *letter (+char "xyz"))
+(def *letter (+char (apply str (filter #(Character/isLetter %) *all-chars))))
 
 (def *identifier (+str (+seqf cons *letter (+star (+or *letter *digit)))))
 
 (defn *string-value [input] (apply +seqf str (mapv +char (mapv str (seq (char-array input))))))
 
-(def operations ["+", "-", "*", "/", "negate"])
+(def *operation (let [oper ["+", "-", "*", "/", "negate"]] (apply +or (mapv *string-value oper))))
 
-(def *operation (apply +or (mapv *string-value operations)))
-
-(declare *ws-expression)
-
-(def *expression (+or (+or *identifier *double) (+seqf list (+ignore (+char "(")) (+plus (delay *ws-expression)) *operation *ws (+ignore (+char ")")))))
-
-(def *ws-expression (+map first (+seq *ws *expression *ws)))
+(def *expression
+  (+seqn 0
+         *ws
+         (+or
+           (+or *identifier *number)
+           (+seqn
+             0
+             (+ignore (+char "("))
+             *ws
+             (+stop-when (+seqn 0 *operation *ws (+ignore (+char ")"))) (delay *expression))
+             ))
+         *ws))
 
 (defn trace [x] (do (println x) x))
 
 (defn parseObjectSuffix [input]
   (letfn
-    [(parseList [lst]
+    [(parseVector [lst]
        (let [operMap {"+"      Add
                       "-"      Subtract
                       "*"      Multiply
                       "/"      Divide
                       "negate" Negate}
              ]
-         (apply (get operMap (last lst)) (mapv parseSomething (first lst)))))
+         (apply (get operMap (last lst)) (mapv parseSomething (drop-last lst)))))
      (parseSomething [smth]
        (cond
-         (list? smth) (parseList smth)
+         (list? smth) (parseVector smth)
          (number? smth) (Constant (double smth))
          :else (Variable smth)))]
-    (parseSomething (-value (*ws-expression input)))))
-
-(tabulate *ws-expression ["(1 2 +)" "1" "3123" "(x negate)" "10.0" "z" "(x 2.0 +)" "((770194950.0 -335724728.0 -) z +)"])
-
-(println (toString (parseObjectSuffix "((770194950.0 -335724728.0 -) z +)")))
-
-(toStringSuffix (parseObjectSuffix "((770194950.0 -335724728.0 -) z +)"))
-
+    (parseSomething (-value (*expression input)))))
