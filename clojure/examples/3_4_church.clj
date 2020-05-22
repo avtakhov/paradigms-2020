@@ -13,33 +13,33 @@
 
 (section "Numbers")
 (example "zero and succ"
-         (def zero (fn [f] (fn [x] x)))
+         (def Zero (fn [f] (fn [x] x)))
          (defn succ [n] (fn [f] (comp f (n f)))))
 (example "Conversion to integer"
          (defn to-int [n] ((n inc) 0)))
 (example "Values"
-         (def one (succ zero))
+         (def one (succ Zero))
          (def two (succ one))
          (def three (succ two))
-         (to-int zero)
+         (to-int Zero)
          (to-int one)
          (to-int two)
          (to-int three))
 (example "Addition"
          (defn n+ [a b] (fn [f] (comp (a f) (b f))))
-         (to-int (n+ zero zero))
+         (to-int (n+ Zero Zero))
          (to-int (n+ two three)))
 (example "Multiplication"
          (defn n* [a b] (comp a b))
-         (to-int (n* zero zero))
+         (to-int (n* Zero Zero))
          (to-int (n* two three)))
 (example "Predecessor"
          (defn pred' [[_ v]] [v (succ v)])
-         (defn pred [n] (first ((n pred') [zero zero])))
+         (defn pred [n] (first ((n pred') [Zero Zero])))
          (to-int (pred three))
          (to-int (pred two))
          (to-int (pred one))
-         (to-int (pred zero)))
+         (to-int (pred Zero)))
 (example "Subtraction"
          (defn n- [a b] ((b pred) a))
          (to-int (n- three one))
@@ -75,7 +75,7 @@
 (section "Predicates")
 (example "= 0"
          (defn is-zero? [n] ((n (constantly b-false)) b-true))
-         (to-boolean (is-zero? zero))
+         (to-boolean (is-zero? Zero))
          (to-boolean (is-zero? one))
          (to-boolean (is-zero? three)))
 (example "<="
@@ -92,14 +92,14 @@
 (section "Signed numbers")
 (example "Basic definitions"
          (defn signed
-           ([p] [p zero])
+           ([p] [p Zero])
            ([p n] [p n]))
          (defn negate [[p n]] [n p]))
 (example "Conversion to integer"
          (defn signed-to-int [[p n]] ((p inc) ((n dec) 0)))
-         (signed-to-int (signed zero))
+         (signed-to-int (signed Zero))
          (signed-to-int (signed two))
-         (signed-to-int (negate (signed zero)))
+         (signed-to-int (negate (signed Zero)))
          (signed-to-int (negate (signed two))))
 (example "Addition"
          (defn s+ [[ap an] [bp bn]] [(n+ ap bp) (n+ an bn)])
