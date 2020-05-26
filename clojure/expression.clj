@@ -129,6 +129,31 @@
             x
             base)})
 
+(defn double-bit-oper [fun]
+  (fn [x y]
+    (Double/longBitsToDouble (fun (Double/doubleToLongBits x) (Double/doubleToLongBits y)))))
+
+(defn And [& args]
+  {:proto (apply constructor
+                 (fn [& args] (reduce (double-bit-oper bit-and) args))
+                 nil
+                 "&"
+                 args)})
+
+(defn Or [& args]
+  {:proto (apply constructor
+                 (fn [& args] (reduce (double-bit-oper bit-or) args))
+                 nil
+                 "|"
+                 args)})
+
+(defn Xor [& args]
+  {:proto (apply constructor
+                 (fn [& args] (reduce (double-bit-oper bit-xor) args))
+                 nil
+                 "^"
+                 args)})
+
 (def e (Constant Math/E))
 
 (defn parseObject [str]
@@ -150,8 +175,8 @@
          (number? smth) (Constant smth)
          :else (Variable (name smth))))]
     (parseSomething (read-string str))))
-;============================================================================================
 
+;============================================================================================
 
 (defn -return [value tail] {:value value :tail tail})
 (def -valid? boolean)
@@ -236,10 +261,13 @@
                             "-"      Subtract
                             "*"      Multiply
                             "/"      Divide
-                            "negate" Negate}] (apply +or
-                                                     (mapv
-                                                       (partial +map (fn [x] (get oper x)))
-                                                       (mapv *string-value (keys oper))))))
+                            "negate" Negate
+                            "&"      And
+                            "|"      Or
+                            "^"      Xor}] (apply +or
+                                                  (mapv
+                                                    (partial +map (fn [x] (get oper x)))
+                                                    (mapv *string-value (keys oper))))))
 
 (def *expression
   (+seqn 0
