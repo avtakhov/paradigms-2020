@@ -255,7 +255,12 @@
 
 (def *identifier (+map Variable (+str (+seqf cons *letter (+star (+or *letter *digit))))))
 
-(defn *string-value [input] (apply +seqf str (mapv +char (mapv str (seq input)))))
+(defn *string-value [& inputs]
+  (letfn [(to-string-array [input]
+            (mapv str (seq input)))
+          (val [input]
+            (apply +seqf str (mapv +char (to-string-array input))))]
+    (apply +or (mapv val inputs))))
 
 (def *operation (let [oper {"+"      Add
                             "-"      Subtract
@@ -285,5 +290,60 @@
                ans)))
          *ws))
 
+(declare *mul-div *simple)
+
+(defn *ws-all [p] (+seqn 0 *ws p *ws))
+
+(defn bin-list [& args] (let [oper {"+" Add
+                                    "-" Subtract
+                                    "*" Multiply
+                                    "/" Divide}]
+                          (if (= 1 (count args))
+                            (first args)
+                            ((get oper (second args)) (first args) (last args)))))
+
+(def start_prior 0)
+
+(defn *hard-expression [level]
+  (let
+    [oper-vec [["+" "-"]
+               ["*" "/"]]
+     oper-parser (mapv (partial apply *string-value) oper-vec)]
+
+    (if (= (count oper-vec) level)
+      *simple
+      (+seqf (partial apply bin-list)
+             (*ws-all (delay (*hard-expression (+ 1 level))))
+             (+opt
+               (+seq
+                 (nth oper-parser level)
+                 (delay (*hard-expression level))))))))
+
+(def *add-sub
+  (+seqf (partial apply bin-list)
+         (*ws-all (delay *mul-div))
+         (+opt
+           (+seq
+             (+or (*string-value "+") (*string-value "-"))
+             (delay *add-sub)))))
+
+(def *mul-div
+  (+seqf (partial apply bin-list)
+         (*ws-all (delay *simple))
+         (+opt (+seq
+                 (+or (*string-value "*") (*string-value "/"))
+                 (delay *mul-div)))))
+
+(def *simple (+or
+               (*ws-all *identifier)
+               (*ws-all *number)
+               (*ws-all (+seqn 0 (+ignore (+char "(")) (delay *hard-expression) (+ignore (+char ")"))))
+               ))
+
 (def parseObjectSuffix (partial (comp -value *expression)))
 
+(tabulate *hard-expression ["x+x" "(10)" "x" "10+2+1+1+1*2" "(10 * (2 + 1))"])
+
+(def expr (-value (*hard-expression "(x * 2.0 + 1.0) / (2.0 * 0.5 - 1.0 + 1.0 - 1.0 + 1.0 - 1.0 + 1.0)")))
+
+(println (toString expr))
