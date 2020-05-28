@@ -1,4 +1,7 @@
 ;===============================================================
+
+(defn trace [x] (do (println x) x))
+
 (defn proto-get [self key]
   (cond
     (some? (get self key)) (get self key)
@@ -16,60 +19,66 @@
 (def evaluate (method :evaluate))
 (def diff (method :diff))
 (def toString (method :toString))
-(def toStringSuffix (method :toStringSuffix))
+(def toStringInfix (method :toStringInfix))
 
-(declare zero Add)
+(declare Zero Add)
 
 (def Constant-prototype
-  {:evaluate       (fn [self values] ((field :value) self))
-   :diff           (fn [self target] zero)
-   :toString       (fn [self] (format "%.1f" ((field :value) self)))
-   :toStringSuffix (fn [self] (format "%.1f" ((field :value) self)))})
+  {:evaluate      (fn [self values] ((field :value) self))
+   :diff          (fn [self target] Zero)
+   :toString      (fn [self] (format "%.1f" ((field :value) self)))
+   :toStringInfix (method :toString)})
 
 (defn Constant [c]
   {:proto Constant-prototype
    :value c})
 
-(def zero (Constant 0.0))
+(def Zero (Constant 0.0))
 (def one (Constant 1.0))
 
+(def +args (field :args))
+
 (def Variable-prototype
-  {:evaluate       (fn [self values] (get values ((field :value) self)))
-   :diff           (fn [self target] (if (= target ((field :value) self)) one zero))
-   :toString       (fn [self] ((field :value) self))
-   :toStringSuffix (fn [self] ((field :value) self))})
+  {:evaluate      (fn [self values] (get values ((field :value) self)))
+   :diff          (fn [self target] (if (= target ((field :value) self)) one Zero))
+   :toString      (fn [self] ((field :value) self))
+   :toStringInfix (method :toString)})
 
 (defn Variable [s]
   {:proto Variable-prototype
    :value s})
 
-(defn Operation [& args]
-  {:evaluate       (fn [self values] (apply ((field :user-fun) self) (mapv (fn [x] (evaluate x values)) args)))
-   :diff           (fn [self target] (((field :diff-fun) self) target))
-   :toString       (fn [self] (apply str "(" ((field :str-value) self) " " (clojure.string/join " " (mapv toString args)) ")"))
-   :toStringSuffix (fn [self] (apply str "(" (clojure.string/join " " (mapv toStringSuffix args)) " " ((field :str-value) self) ")"))})
+(def Operation
+  {:evaluate      (fn [self values] (apply ((field :user-fun) self) (mapv (fn [x] (evaluate x values)) (+args self))))
+   :diff          (fn [self target] (((field :diff-fun) self) target))
+   :toString      (fn [self] (apply str "(" ((field :str-value) self) " " (clojure.string/join " " (mapv toString (+args self))) ")"))
+   :toStringInfix (fn [self] (apply str "(" (clojure.string/join (str " " ((field :str-value) self) " ") (mapv toStringInfix (+args self))) ")"))})
 
-(defn constructor [user-fun diff-fun str-value & args]
-  {:proto     (apply Operation args)
+(defn constructor [user-fun diff-fun str-value]
+  {:proto     Operation
    :user-fun  user-fun
    :diff-fun  diff-fun
    :str-value str-value})
+
+(defn unary-constructor [user-fun diff-fun str-value]
+  {:proto         (constructor user-fun diff-fun str-value)
+   :toStringInfix (fn [self] (str str-value "(" (apply toStringInfix (+args self)) ")"))})
 
 (defn Add [& args]
   {:proto (apply constructor
                  +
                  (fn [target]
                    (apply Add (mapv (fn [x] (diff x target)) args)))
-                 "+"
-                 args)})
+                 "+")
+   :args  args})
 
 (defn Subtract [& args]
   {:proto (apply constructor
                  -
                  (fn [target]
                    (apply Subtract (mapv (fn [x] (diff x target)) args)))
-                 "-"
-                 args)})
+                 "-")
+   :args  args})
 
 
 (defn Multiply [& args]
@@ -78,8 +87,8 @@
                  (fn [target] (reduce (fn [x y] (Add
                                                   (Multiply (diff x target) y)
                                                   (Multiply (diff y target) x))) args))
-                 "*"
-                 args)})
+                 "*")
+   :args  args})
 
 (defn Divide [& args]
   {:proto (apply constructor
@@ -89,15 +98,15 @@
                                                     (Multiply (diff x target) y)
                                                     (Multiply (diff y target) x))
                                                   (Multiply y y))) args))
-                 "/"
-                 args)})
+                 "/")
+   :args  args})
 
 (defn Negate [x]
-  {:proto (constructor
+  {:proto (unary-constructor
             -
             (fn [target] (Negate (diff x target)))
-            "negate"
-            x)})
+            "negate")
+   :args  (vector x)})
 
 (declare e Lg)
 
@@ -106,8 +115,7 @@
 (defn Ln [x] {:proto    (constructor
                           (fn [x] (Math/log (abs x)))
                           (fn [target] (Divide (diff x target) x))
-                          "not_used"
-                          x)
+                          "not_used")
               :toString (str "(lg " (toString x) " e)")})
 
 (defn Pw [x y]
@@ -116,18 +124,16 @@
             (fn [target] (Multiply
                            (diff (Multiply (Ln x) y) target)
                            (Pw x y)))
-            "pw"
-            x
-            y)})
+            "pw")
+   :args  (vector x y)})
 
 
 (defn Lg [x base]
   {:proto (constructor
             (fn [x base] (/ (Math/log (abs base)) (Math/log (abs x))))
             (fn [target] (diff (Divide (Ln base) (Ln x)) target))
-            "lg"
-            x
-            base)})
+            "lg")
+   :args  (vector x base)})
 
 (defn double-bit-oper [fun]
   (fn [x y]
@@ -137,22 +143,22 @@
   {:proto (apply constructor
                  (fn [& args] (reduce (double-bit-oper bit-and) args))
                  nil
-                 "&"
-                 args)})
+                 "&")
+   :args  args})
 
 (defn Or [& args]
   {:proto (apply constructor
                  (fn [& args] (reduce (double-bit-oper bit-or) args))
                  nil
-                 "|"
-                 args)})
+                 "|")
+   :args  args})
 
 (defn Xor [& args]
   {:proto (apply constructor
                  (fn [& args] (reduce (double-bit-oper bit-xor) args))
                  nil
-                 "^"
-                 args)})
+                 "^")
+   :args  args})
 
 (def e (Constant Math/E))
 
@@ -234,14 +240,9 @@
 (defn +plus [p] (+seqf cons p (+star p)))
 (defn +str [p] (+map (partial apply str) p))
 
+(def *digit (+char "0123456789"))
 
-
-(defn +stop-when [stop p]
-  (_either (+seqf list stop) (+seqf (fn [x col] (conj col x)) p (delay (+stop-when stop p)))))
-
-(def *digit (+char "0123456789.-"))
-
-(def *number (+map (fn [s] (Constant (read-string s))) (+str (+plus *digit))))
+(def *number (+str (+plus *digit)))
 
 (def *string (+seqn 1 (+char "\"") (+str (+star (+char-not "\""))) (+char "\"")))
 
@@ -255,6 +256,8 @@
 
 (def *identifier (+map Variable (+str (+seqf cons *letter (+star (+or *letter *digit))))))
 
+(def *double (+map (comp Constant read-string) (+seqf str (+opt (+char "-")) *number (+char ".") *number)))
+
 (defn *string-value [& inputs]
   (letfn [(to-string-array [input]
             (mapv (comp +char str) (seq input)))
@@ -262,59 +265,31 @@
             (apply +seqf str (to-string-array input)))]
     (apply +or (mapv val inputs))))
 
-(def *operation (let [oper {"+"      Add
-                            "-"      Subtract
-                            "*"      Multiply
-                            "/"      Divide
-                            "negate" Negate
-                            "&"      And
-                            "|"      Or
-                            "^"      Xor}] (apply +or
-                                                  (mapv
-                                                    (partial +map (fn [x] (get oper x)))
-                                                    (mapv *string-value (keys oper))))))
+(def parsing-bin-oper-map {"+" Add
+                           "-" Subtract
+                           "*" Multiply
+                           "/" Divide
+                           "&" And
+                           "|" Or
+                           "^" Xor})
 
-(def *expression
-  (+seqn 0
-         *ws
-         (+or
-           (+or *identifier *number)
-           (+seqn
-             0
-             (+ignore (+char "("))
-             *ws
-             (let [end (+seqn 0 *ws *operation *ws (+char ")"))
-                   lst (+stop-when end (delay *expression))
-                   expr (fn [x] (apply (last x) (drop-last x)))
-                   ans (+map expr lst)]
-               ans)))
-         *ws))
+(def parsing-unary-oper-map {"negate" Negate})
 
-(declare *mul-div *simple *unary)
+(declare *simple *unary)
 
 (defn *ws-all [p] (+seqn 0 *ws p *ws))
 
-(defn trace [x] (do (println x) x))
+(defn bin-list [& args] ((get parsing-bin-oper-map (second args)) (first args) (last args)))
 
-(defn bin-list [& args] (let [oper {"+" Add
-                                    "-" Subtract
-                                    "*" Multiply
-                                    "/" Divide}]
-                          (if (= 1 (count (trace args)))
-                            (first args)
-                            ((get oper (second args)) (first args) (last args)))))
-
-(defn un-list [& args] (let [oper {"-" Negate}]
-                         (if (= 1 (count args))
-                           (first args)
-                           ((get oper (first args)) (second args)))))
-
-(def start_prior 0)
+(defn un-list [& args] ((get parsing-unary-oper-map (first args)) (second args)))
 
 (defn *hard-expression [level]
   (let
-    [oper-vec [["+" "-"]
-               ["*" "/"]]
+    [oper-vec [["^"]
+               ["|"]
+               ["&"]
+               ["+" "-"]                                    ; 1
+               ["*" "/"]]                                   ; 2
      oper-parser (mapv (partial apply *string-value) oper-vec)]
     (if (= (count oper-vec) level)
       *simple
@@ -325,22 +300,15 @@
                  (nth oper-parser level)
                  (delay (*hard-expression (+ 1 level)))))))))
 
-(def *unary (let [oper ["-"]] (+seqf un-list
-                                     (+opt (apply *string-value oper))
-                                     (delay *simple))))
-
-(def *start-parse (*hard-expression start_prior))
+(def *unary (+seqf un-list
+                   (apply *string-value (keys parsing-unary-oper-map))
+                   (delay *simple)))
 
 (def *simple (*ws-all (+or
+                        (delay *unary)
                         *identifier
-                        *number
-                        (+seqn 0 (+ignore (+char "(")) (delay *start-parse) (+ignore (+char ")"))))))
+                        *double
+                        (+seqn 0 (+ignore (+char "(")) (delay (*hard-expression 0)) (+ignore (+char ")"))))))
 
 
-(def parseObjectSuffix (partial (comp -value *expression)))
-
-;(tabulate *start-parse ["x+x" "(10)" "x" "10+2+1+1+1*2" "(10 * (2 + 1))"])
-
-(def expr (-value (*start-parse "x + 2.0")))
-
-(println (toString expr))
+(def parseObjectInfix (partial (comp -value (*hard-expression 0))))
