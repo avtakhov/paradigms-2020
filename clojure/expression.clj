@@ -257,9 +257,9 @@
 
 (defn *string-value [& inputs]
   (letfn [(to-string-array [input]
-            (mapv str (seq input)))
+            (mapv (comp +char str) (seq input)))
           (val [input]
-            (apply +seqf str (mapv +char (to-string-array input))))]
+            (apply +seqf str (to-string-array input)))]
     (apply +or (mapv val inputs))))
 
 (def *operation (let [oper {"+"      Add
@@ -290,17 +290,24 @@
                ans)))
          *ws))
 
-(declare *mul-div *simple)
+(declare *mul-div *simple *unary)
 
 (defn *ws-all [p] (+seqn 0 *ws p *ws))
+
+(defn trace [x] (do (println x) x))
 
 (defn bin-list [& args] (let [oper {"+" Add
                                     "-" Subtract
                                     "*" Multiply
                                     "/" Divide}]
-                          (if (= 1 (count args))
+                          (if (= 1 (count (trace args)))
                             (first args)
                             ((get oper (second args)) (first args) (last args)))))
+
+(defn un-list [& args] (let [oper {"-" Negate}]
+                         (if (= 1 (count args))
+                           (first args)
+                           ((get oper (first args)) (second args)))))
 
 (def start_prior 0)
 
@@ -309,41 +316,31 @@
     [oper-vec [["+" "-"]
                ["*" "/"]]
      oper-parser (mapv (partial apply *string-value) oper-vec)]
-
     (if (= (count oper-vec) level)
       *simple
-      (+seqf (partial apply bin-list)
+      (+seqf (partial reduce (partial apply bin-list))
              (*ws-all (delay (*hard-expression (+ 1 level))))
-             (+opt
+             (+star
                (+seq
                  (nth oper-parser level)
-                 (delay (*hard-expression level))))))))
+                 (delay (*hard-expression (+ 1 level)))))))))
 
-(def *add-sub
-  (+seqf (partial apply bin-list)
-         (*ws-all (delay *mul-div))
-         (+opt
-           (+seq
-             (+or (*string-value "+") (*string-value "-"))
-             (delay *add-sub)))))
+(def *unary (let [oper ["-"]] (+seqf un-list
+                                     (+opt (apply *string-value oper))
+                                     (delay *simple))))
 
-(def *mul-div
-  (+seqf (partial apply bin-list)
-         (*ws-all (delay *simple))
-         (+opt (+seq
-                 (+or (*string-value "*") (*string-value "/"))
-                 (delay *mul-div)))))
+(def *start-parse (*hard-expression start_prior))
 
-(def *simple (+or
-               (*ws-all *identifier)
-               (*ws-all *number)
-               (*ws-all (+seqn 0 (+ignore (+char "(")) (delay *hard-expression) (+ignore (+char ")"))))
-               ))
+(def *simple (*ws-all (+or
+                        *identifier
+                        *number
+                        (+seqn 0 (+ignore (+char "(")) (delay *start-parse) (+ignore (+char ")"))))))
+
 
 (def parseObjectSuffix (partial (comp -value *expression)))
 
-(tabulate *hard-expression ["x+x" "(10)" "x" "10+2+1+1+1*2" "(10 * (2 + 1))"])
+;(tabulate *start-parse ["x+x" "(10)" "x" "10+2+1+1+1*2" "(10 * (2 + 1))"])
 
-(def expr (-value (*hard-expression "(x * 2.0 + 1.0) / (2.0 * 0.5 - 1.0 + 1.0 - 1.0 + 1.0 - 1.0 + 1.0)")))
+(def expr (-value (*start-parse "x + 2.0")))
 
 (println (toString expr))
