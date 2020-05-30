@@ -1,4 +1,4 @@
-(defn constant [c] (fn [values] c))
+(defn constant [c] (constantly c))
 
 (defn variable [str] (fn [values] (get values str)))
 
@@ -13,7 +13,7 @@
 
 (def multiply (oper *))
 
-(def divide (oper (fn [& args] (/ (double (first args)) (apply * (rest args))))))
+(def divide (oper #(/ (double %1) %2)))
 
 (def negate (oper -))
 
@@ -30,8 +30,7 @@
                       "/"      divide
                       "negate" negate
                       "max"    max
-                      "min"    min}
-             ]
+                      "min"    min}]
          (apply (get operMap (name (first lst))) (mapv parseSomething (pop lst)))))
 
      (parseSomething [smth]
